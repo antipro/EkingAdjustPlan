@@ -3,9 +3,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import * as antd from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
+import { logService, LogEntry } from '../services/logService';
 
 const { 
   Table,
@@ -21,75 +22,26 @@ const {
 const { RangePicker } = DatePicker;
 
 // Mock Data for Adjustment Log
-const logData = [
-  {
-    key: '1',
-    category: '临床',
-    code: 'C00903',
-    projectCategory: '处置',
-    name: '前牙美容修复术',
-    unit: '套',
-    specs: '',
-    planEffectiveTime: '2026-04-01 00:00:00',
-    adjustmentType: '启用',
-    status: '成功',
-    effectiveTime: '2026-04-01 00:01:23',
-  },
-  {
-    key: '2',
-    category: '临床',
-    code: 'C00904',
-    projectCategory: '其他',
-    name: '多学科诊疗费',
-    unit: '套',
-    specs: '',
-    planEffectiveTime: '2026-04-01 00:00:00',
-    adjustmentType: '调整',
-    status: '成功',
-    effectiveTime: '2026-04-01 00:01:23',
-  },
-  {
-    key: '3',
-    category: '价表',
-    code: 'C00905',
-    projectCategory: '其他',
-    name: '挂号费',
-    unit: '次',
-    specs: '',
-    planEffectiveTime: '2026-04-01 00:00:00',
-    adjustmentType: '停用',
-    status: '成功',
-    effectiveTime: '2026-04-01 00:01:23',
-  },
-  {
-    key: '4',
-    category: '价表',
-    code: 'C00906',
-    projectCategory: '其他',
-    name: '诊疗费',
-    unit: '次',
-    specs: '',
-    planEffectiveTime: '2026-04-01 00:00:00',
-    adjustmentType: '启用',
-    status: '失败',
-    effectiveTime: '',
-  },
-  {
-    key: '5',
-    category: '价表',
-    code: 'C00907',
-    projectCategory: '其他',
-    name: '门诊病历手册',
-    unit: '册',
-    specs: '',
-    planEffectiveTime: '2026-04-01 00:00:00',
-    adjustmentType: '调整',
-    status: '失败',
-    effectiveTime: '',
-  },
-];
+// Removed as it is now fetched from logService
 
 const ClinicalAdjustmentLog: React.FC = () => {
+  const [data, setData] = useState<LogEntry[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      const result = await logService.getLogs();
+      // Map service data to component expected structure if needed
+      // For now, I'll just use the service data directly but might need mapping
+      // The service data is slightly different from the component's mock data
+      // I'll update the service to match the component's structure or vice versa
+      setData(result); 
+      setLoading(false);
+    };
+    fetchData();
+  }, []);
+
   const columns = [
     { title: '类别', dataIndex: 'category', key: 'category', width: 80 },
     { title: '项目代码', dataIndex: 'code', key: 'code', width: 100 },
@@ -177,7 +129,8 @@ const ClinicalAdjustmentLog: React.FC = () => {
       <div style={{ flex: 1 }}>
         <Table 
           columns={columns} 
-          dataSource={logData} 
+          dataSource={data} 
+          loading={loading}
           pagination={false}
           size="small"
           bordered

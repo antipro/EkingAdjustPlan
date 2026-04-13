@@ -1,0 +1,206 @@
+import React, { useState, useEffect, useCallback } from 'react';
+import * as antd from 'antd';
+import { PlusOutlined } from '@ant-design/icons';
+import { planService, PlanInfo, PageInfo } from '../services/planService';
+
+const { 
+  Select, 
+  DatePicker, 
+  Button, 
+  Tag, 
+  Space, 
+  Pagination, 
+  Typography,
+  Checkbox
+} = antd;
+
+const { Text } = Typography;
+
+interface PlanListProps {
+  planType?: string;
+  initialSelectedId?: string;
+  onSelect?: (plan: PlanInfo) => void;
+  onCreate?: () => void;
+  onViewLogs?: () => void;
+  onSubmit?: (plan: PlanInfo) => void;
+  onEdit?: (plan: PlanInfo) => void;
+  onDelete?: (plan: PlanInfo) => void;
+}
+
+const PlanList: React.FC<PlanListProps> = ({
+  planType,
+  initialSelectedId,
+  onSelect,
+  onCreate,
+  onViewLogs,
+  onSubmit,
+  onEdit,
+  onDelete
+}) => {
+  const [plans, setPlans] = useState<PlanInfo[]>([]);
+  const [selectedId, setSelectedId] = useState(initialSelectedId || '');
+  const [loading, setLoading] = useState(false);
+  const [pagination, setPagination] = useState<PageInfo>({
+    pageSize: 20,
+    totalCount: 0,
+    totalPageNum: 0,
+    pageNum: 1,
+  });
+
+  const [searchParams, setSearchParams] = useState({
+    region: 'js',
+    date: null,
+    status: 'all',
+  });
+
+  const fetchPlans = useCallback(async (pageNum: number) => {
+    setLoading(true);
+    try {
+      const response = await planService.getPlans({
+        pageNum: pageNum,
+        pageSize: pagination.pageSize,
+        planType: planType,
+      });
+      if (response.code === 'SUCCESS') {
+        setPlans(response.data.dataInfo);
+        setPagination(response.data.pageInfo);
+        
+        // Auto-select first plan if none selected
+        if (!selectedId && response.data.dataInfo.length > 0) {
+          const firstPlan = response.data.dataInfo[0];
+          setSelectedId(firstPlan.id);
+          onSelect?.(firstPlan);
+        }
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [planType, pagination.pageSize, selectedId, onSelect]);
+
+  useEffect(() => {
+    fetchPlans(1);
+  }, [planType]);
+
+  const handleSelect = (plan: PlanInfo) => {
+    setSelectedId(plan.id);
+    onSelect?.(plan);
+  };
+
+  const handlePageChange = (page: number) => {
+    fetchPlans(page);
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case '0': return 'blue'; // Draft
+      case '1': return 'orange'; // Published
+      case '2': return 'green'; // Active
+      default: return 'default';
+    }
+  };
+
+  return (
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: '#fff' }}>
+      <div style={{ padding: 12, borderBottom: '1px solid #f0f0f0' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <Select 
+              value={searchParams.region} 
+              style={{ width: '50%' }}
+              placeholder="选择地区"
+              options={[{ value: 'js', label: '江苏省' }]}
+              onChange={(val) => setSearchParams(prev => ({ ...prev, region: val }))}
+            />
+            <DatePicker 
+              style={{ width: '50%' }} 
+              placeholder="生效日期"
+              onChange={(date) => setSearchParams(prev => ({ ...prev, date: date as any }))}
+            />
+          </div>
+          <Select 
+            value={searchParams.status} 
+            style={{ width: '100%' }}
+            placeholder="计划状态"
+            options={[{ value: 'all', label: '全部' }]}
+            onChange={(val) => setSearchParams(prev => ({ ...prev, status: val }))}
+          />
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8 }}>
+            <Button type="primary" size="small" icon={<PlusOutlined />} onClick={onCreate}>
+              新建
+            </Button>
+            <Button size="small" onClick={onViewLogs}>日志</Button>
+          </div>
+        </div>
+      </div>
+
+      <div style={{ flex: 1, overflowY: 'auto', position: 'relative' }}>
+        {loading && (
+          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(255,255,255,0.7)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1 }}>
+            <antd.Spin />
+          </div>
+        )}
+        {plans.map(plan => (
+          <div 
+            key={plan.id}
+            className={`plan-item ${selectedId === plan.id ? 'active' : ''}`}
+            onClick={() => handleSelect(plan)}
+            style={{
+              padding: '12px 16px',
+              cursor: 'pointer',
+              borderBottom: '1px solid #f0f0f0',
+              transition: 'all 0.3s',
+              borderLeft: '3px solid transparent',
+              background: selectedId === plan.id ? '#e6f7ff' : '#fff',
+              borderLeftColor: selectedId === plan.id ? '#1890ff' : 'transparent'
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: 4 }}>
+              <Text type="secondary" style={{ fontSize: 12 }}>生效时间 </Text>
+              <Text strong style={{ fontSize: 12 }}>{plan.beginDatetime}</Text>
+              <Tag color={getStatusColor(plan.status)} style={{ marginLeft: 'auto' }}>{plan.statusName}</Tag>
+            </div>
+            <div style={{ marginBottom: 4 }}>
+              <Text type="secondary" style={{ fontSize: 12 }}>计划名称 </Text>
+              <Text style={{ fontSize: 12 }}>{plan.planName}</Text>
+            </div>
+            <div style={{ marginBottom: 4 }}>
+              <Text type="secondary" style={{ fontSize: 12 }}>政策文件 </Text>
+              <Text style={{ fontSize: 12 }}>{plan.policy}</Text>
+            </div>
+            <div style={{ marginBottom: 4 }}>
+              <Text type="secondary" style={{ fontSize: 12 }}>计划条数 </Text>
+              <Text style={{ fontSize: 12 }}>{plan.changeSummary}</Text>
+            </div>
+            <div style={{ marginBottom: 8 }}>
+              <Text type="secondary" style={{ fontSize: 12 }}>适用机构 </Text>
+              <Text style={{ fontSize: 12 }}>{plan.orgNames}</Text>
+            </div>
+            
+            {plan.status === '0' && selectedId === plan.id && (
+              <div style={{ textAlign: 'right' }}>
+                <Space>
+                  <Button size="small" onClick={(e) => { e.stopPropagation(); onSubmit?.(plan); }}>提交</Button>
+                  <Button size="small" onClick={(e) => { e.stopPropagation(); onEdit?.(plan); }}>修改</Button>
+                  <Button size="small" danger onClick={(e) => { e.stopPropagation(); onDelete?.(plan); }}>删除</Button>
+                </Space>
+              </div>
+            )}
+          </div>
+        ))}
+        
+        <div style={{ padding: 8, borderTop: '1px solid #f0f0f0', background: '#fff', position: 'sticky', bottom: 0 }}>
+          <Pagination
+            current={pagination.pageNum}
+            pageSize={pagination.pageSize}
+            total={pagination.totalCount}
+            size="small"
+            showSizeChanger={false}
+            onChange={handlePageChange}
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default PlanList;

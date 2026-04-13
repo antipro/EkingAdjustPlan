@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import * as antd from 'antd';
 import {
   SearchOutlined,
@@ -11,6 +11,8 @@ import {
   ExportOutlined,
   InfoCircleOutlined,
 } from '@ant-design/icons';
+import { maintenanceService, MaintenanceItem } from '../services/maintenanceService';
+import PlanList from './PlanList';
 
 const { 
   Table,
@@ -31,125 +33,33 @@ const {
 const { Text } = Typography;
 
 // Mock Data for Maintenance Plan List
-const maintenancePlanList = [
-  {
-    id: '1',
-    effectiveTime: '2026-02-01 00:00',
-    linkedPlan: '是 (价表项目调整: 按2026年医保物价...)',
-    name: '按2026年医保物价管理条例要求变更物价项目...',
-    stats: '启用3; 调整5; 停用4',
-    scope: '不限',
-    status: 'Draft',
-  },
-  {
-    id: '2',
-    effectiveTime: '2026-01-01 00:00',
-    linkedPlan: '否',
-    name: '按2026年医保物价管理条例要求变更物价项目...',
-    stats: '启用3; 停用4',
-    scope: '鑫亿云医院; 鑫亿未来医院',
-    status: 'Published',
-  },
-  {
-    id: '3',
-    effectiveTime: '2025-09-30 00:00',
-    linkedPlan: '是 (价表项目调整: 按2026年医保物价...)',
-    name: '调整临床项目',
-    stats: '停用4',
-    scope: '不限',
-    status: 'Active',
-  },
-];
+// Removed as it is now fetched from planService via Vue component
 
 // Mock Data for Maintenance Table
-const maintenanceTableData = [
-  {
-    key: '1',
-    code: 'C00903',
-    category: '处置',
-    name: 'XXXXX',
-    unit: '套',
-    totalPrice: '180',
-    linkedItems: 'XXXXX',
-    execDept: '',
-    reqCategory: '',
-    examSite: '',
-    specimenType: '',
-    filmSurcharge: '',
-    linkedCharge: '',
-  },
-  {
-    key: '2',
-    code: 'C00904',
-    category: '检查',
-    name: 'XXXXX',
-    unit: '套',
-    totalPrice: '50',
-    linkedItems: 'XXXXX',
-    execDept: '超声室; 安图分...',
-    reqCategory: 'CT-超声',
-    examSite: '有',
-    specimenType: '',
-    filmSurcharge: '',
-    linkedCharge: '',
-  },
-  {
-    key: '3',
-    code: '209585',
-    category: '检验',
-    name: 'XXXXX',
-    unit: '次',
-    totalPrice: '12',
-    linkedItems: 'XXXXX',
-    execDept: '检验科',
-    reqCategory: '检验-临检',
-    examSite: '',
-    specimenType: '有',
-    filmSurcharge: '',
-    linkedCharge: '',
-  },
-  {
-    key: '4',
-    code: 'C00906',
-    category: '治疗',
-    name: 'XXXXX',
-    unit: '次',
-    totalPrice: '10',
-    linkedItems: 'XXXXX',
-    execDept: '康复科',
-    reqCategory: '治疗-康复医学',
-    examSite: '有',
-    specimenType: '',
-    filmSurcharge: '',
-    linkedCharge: '',
-  },
-  {
-    key: '5',
-    code: 'C00907',
-    category: '病理',
-    name: 'XXXXX',
-    unit: '册',
-    totalPrice: '2',
-    linkedItems: 'XXXXX',
-    execDept: '病理科',
-    reqCategory: '病理-门诊妇产',
-    examSite: '',
-    specimenType: '',
-    filmSurcharge: '',
-    linkedCharge: '',
-  },
-];
+// Removed as it is now fetched from maintenanceService
 
 const ClinicalProjectMaintenance: React.FC = () => {
-  const [selectedPlan, setSelectedPlan] = useState('2');
+  const [selectedPlan, setSelectedPlan] = useState<any>(null);
+  const [data, setData] = useState<MaintenanceItem[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      const result = await maintenanceService.getMaintenanceData();
+      setData(result);
+      setLoading(false);
+    };
+    fetchData();
+  }, []);
 
   const columns = [
     { title: '项目代码', dataIndex: 'code', key: 'code', width: 100 },
     { title: '项目分类', dataIndex: 'category', key: 'category', width: 100 },
     { title: '项目名称', dataIndex: 'name', key: 'name', width: 120 },
     { title: '单位', dataIndex: 'unit', key: 'unit', width: 60 },
-    { title: '总价', dataIndex: 'totalPrice', key: 'totalPrice', width: 80 },
-    { title: '关联的价表项目', dataIndex: 'linkedItems', key: 'linkedItems', width: 150 },
+    { title: '总价', dataIndex: 'price', key: 'price', width: 80 },
+    { title: '关联的价表项目', dataIndex: 'linkedPriceItems', key: 'linkedPriceItems', width: 150 },
     { title: '执行科室 (业务单元)', dataIndex: 'execDept', key: 'execDept', width: 180 },
     { title: '申请单分类', dataIndex: 'reqCategory', key: 'reqCategory', width: 150 },
     { title: '检查部位', dataIndex: 'examSite', key: 'examSite', width: 100 },
@@ -180,65 +90,11 @@ const ClinicalProjectMaintenance: React.FC = () => {
 
       <div style={{ display: 'flex', flex: 1 }}>
         {/* Left Plan List Panel */}
-        <div style={{ width: 300, background: '#fff', borderRight: '1px solid #e8e8e8', display: 'flex', flexDirection: 'column' }}>
-          <div style={{ padding: 12, borderBottom: '1px solid #f0f0f0' }}>
-            <Row gutter={[8, 8]}>
-              <Col span={12}>
-                <Select 
-                  defaultValue="js" 
-                  style={{ width: '100%' }}
-                  options={[{ value: 'js', label: '江苏省' }]}
-                />
-              </Col>
-              <Col span={12}>
-                <DatePicker placeholder="生效日期开始" style={{ width: '100%' }} />
-              </Col>
-              <Col span={24}>
-                <Space>
-                  <Checkbox>草稿</Checkbox>
-                  <Checkbox>发布</Checkbox>
-                  <Checkbox>生效</Checkbox>
-                </Space>
-              </Col>
-            </Row>
-          </div>
-          <div style={{ flex: 1, overflowY: 'auto', padding: '8px 0' }}>
-            {maintenancePlanList.map(plan => (
-              <div 
-                key={plan.id}
-                onClick={() => setSelectedPlan(plan.id)}
-                style={{ 
-                  padding: '12px 16px', 
-                  cursor: 'pointer',
-                  borderLeft: selectedPlan === plan.id ? '3px solid #1890ff' : '3px solid transparent',
-                  background: selectedPlan === plan.id ? '#e6f7ff' : '#fff',
-                  borderBottom: '1px solid #f0f0f0'
-                }}
-              >
-                <div style={{ marginBottom: 4 }}>
-                  <Text type="secondary" style={{ fontSize: 12 }}>生效时间 </Text>
-                  <Text strong style={{ fontSize: 12 }}>{plan.effectiveTime}</Text>
-                  {getStatusTag(plan.status)}
-                </div>
-                <div style={{ marginBottom: 4 }}>
-                  <Text type="secondary" style={{ fontSize: 12 }}>关联计划 </Text>
-                  <Text style={{ fontSize: 12 }}>{plan.linkedPlan}</Text>
-                </div>
-                <div style={{ marginBottom: 4 }}>
-                  <Text type="secondary" style={{ fontSize: 12 }}>计划名称 </Text>
-                  <Text style={{ fontSize: 12 }}>{plan.name}</Text>
-                </div>
-                <div style={{ marginBottom: 4 }}>
-                  <Text type="secondary" style={{ fontSize: 12 }}>计划条数 </Text>
-                  <Text style={{ fontSize: 12 }}>{plan.stats}</Text>
-                </div>
-                <div style={{ marginBottom: 8 }}>
-                  <Text type="secondary" style={{ fontSize: 12 }}>适用机构 </Text>
-                  <Text style={{ fontSize: 12 }}>{plan.scope}</Text>
-                </div>
-              </div>
-            ))}
-          </div>
+        <div style={{ width: 300, background: '#fff', borderRight: '1px solid #e8e8e8' }}>
+          <PlanList 
+            planType="200" 
+            onSelect={(plan) => setSelectedPlan(plan)}
+          />
         </div>
 
         {/* Right Detail Panel */}
@@ -294,7 +150,8 @@ const ClinicalProjectMaintenance: React.FC = () => {
           <div style={{ flex: 1, padding: 0 }}>
             <Table 
               columns={columns} 
-              dataSource={maintenanceTableData} 
+              dataSource={data} 
+              loading={loading}
               pagination={false}
               size="small"
               bordered

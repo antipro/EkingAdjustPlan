@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import * as antd from 'antd';
 import {
   PlusOutlined,
@@ -11,6 +11,8 @@ import {
   ImportOutlined,
   DownOutlined,
 } from '@ant-design/icons';
+import { priceListService, PriceItem, LinkedClinicalItem } from '../services/priceListService';
+import PlanList from './PlanList';
 
 const { 
   Table,
@@ -30,253 +32,40 @@ const {
 const { Title, Text } = Typography;
 
 // Mock Data for Plan List
-const planList = [
-  {
-    id: '1',
-    effectiveTime: '2026-02-01 00:00',
-    name: '按2026年医保物价管理条例要求变更物价项目',
-    policy: '江苏省医保医疗服务价格调整公式[202607...',
-    stats: '启用3; 调整5; 停用4',
-    scope: '不限',
-    status: 'Draft',
-  },
-  {
-    id: '2',
-    effectiveTime: '2026-01-01 00:00',
-    name: '按2026年医保物价管理条例要求变更物价项目',
-    policy: '江苏省医保医疗服务价格调整公式[202607...',
-    stats: '启用3; 停用4',
-    scope: '鑫亿云医院; 鑫亿未来医院',
-    status: 'Published',
-  },
-  {
-    id: '3',
-    effectiveTime: '2025-09-30 00:00',
-    name: '调整价表项目',
-    policy: '江苏省医保医疗服务价格调整公式[202607...',
-    stats: '停用4',
-    scope: '不限',
-    status: 'Active',
-  },
-  {
-    id: '4',
-    effectiveTime: '2025-09-30 00:00',
-    name: '调整价表项目',
-    policy: '江苏省医保医疗服务价格调整公式[202607...',
-    stats: '停用4',
-    scope: '不限',
-    status: 'Obsolete',
-  },
-];
+// Removed as it is now fetched from priceListService
 
 // Mock Data for Table
-const tableData = [
-  {
-    key: '1',
-    active: '否',
-    code: '20251121001',
-    name: '前牙美容修复术',
-    specs: '/',
-    unit: '套',
-    price3: '200',
-    price2: '180',
-    price1: '',
-    natCode: '001109000010000',
-    natName: '前牙美容修复术',
-    remarks: '指医务人员技术劳务性服务',
-  },
-  {
-    key: '2',
-    active: '否',
-    code: '20251121002',
-    name: '多学科诊疗费',
-    specs: '/',
-    unit: '套',
-    price3: '48',
-    price2: '32',
-    price1: '',
-    natCode: '001109000010000',
-    natName: '多学科诊疗费',
-    remarks: '含诊查、护理等',
-  },
-  {
-    key: '3',
-    active: '否',
-    code: 'XXXXXXXX',
-    name: '挂号费',
-    specs: '/',
-    unit: '次',
-    price3: '24',
-    price2: '20',
-    price1: '',
-    natCode: '001109000030000',
-    natName: '挂号费',
-    remarks: 'XXXXXX',
-  },
-  {
-    key: '4',
-    active: '否',
-    code: 'XXXXXXXX',
-    name: '诊疗费',
-    specs: '/',
-    unit: '次',
-    price3: '50',
-    price2: '40',
-    price1: '',
-    natCode: '001109000031000',
-    natName: '诊疗费',
-    remarks: 'XXXXXX',
-  },
-  {
-    key: '5',
-    active: '否',
-    code: 'XXXXXXXX',
-    name: '门诊病历手册',
-    specs: '/',
-    unit: '册',
-    price3: '4',
-    price2: '2',
-    price1: '',
-    natCode: '001109000032000',
-    natName: '门诊病历手册',
-    remarks: 'XXXXXX',
-  },
-];
+// Removed as it is now fetched from priceListService
 
 // Mock Data for Adjust Table
-const adjustTableData = [
-  // ... (existing data)
-];
+// Removed as it is now fetched from priceListService
 
 // Mock Data for Deactivate Table
-const deactivateTableData = [
-  {
-    key: '1',
-    active: '否',
-    code: '20251121001',
-    name: '前牙美容修复术',
-    unit: '套',
-    itemCode: '10000',
-    category: '处置',
-    repCode: '',
-    repName: '',
-    repUnit: '',
-    repItemCode: '',
-    status: '已完成',
-  },
-  {
-    key: '2',
-    active: '否',
-    code: '20251121002',
-    name: '呼吸道病毒抗原 (腺病毒)',
-    unit: '次',
-    itemCode: '10001',
-    category: '其他',
-    repCode: '202511343',
-    repName: '呼吸道病毒抗原快速测定',
-    repUnit: '次',
-    repItemCode: '90001',
-    status: '未完成',
-  },
-  {
-    key: '3',
-    active: '否',
-    code: 'XXXXXXXX',
-    name: '挂号费',
-    unit: '次',
-    itemCode: '10002',
-    category: '其他',
-    repCode: 'XXXXXXXX',
-    repName: 'XXXXXXXX',
-    repUnit: '次',
-    repItemCode: '10002',
-    status: '未完成',
-  },
-  {
-    key: '4',
-    active: '否',
-    code: 'XXXXXXXX',
-    name: '诊疗费',
-    unit: '次',
-    itemCode: '10003',
-    category: '其他',
-    repCode: 'XXXXXXXX',
-    repName: 'XXXXXXXX',
-    repUnit: '次',
-    repItemCode: '10003',
-    status: '未完成',
-  },
-  {
-    key: '5',
-    active: '否',
-    code: 'XXXXXXXX',
-    name: '门诊病历手册',
-    unit: '册',
-    itemCode: '10004',
-    category: '其他',
-    repCode: '',
-    repName: '',
-    repUnit: '',
-    repItemCode: '',
-    status: '未完成',
-  },
-];
+// Removed as it is now fetched from priceListService
 
 // Mock Data for Linked Clinical Projects
-const linkedClinicalData = [
-  {
-    key: '1',
-    code: '20011',
-    category: '检验',
-    name: 'EB病毒抗体六联检',
-    linkedItems: 'EB病毒抗体 (早期抗原IgM) x1; EB病毒抗体 (核心抗原Igc) x1; E...',
-    processType: '',
-  },
-  {
-    key: '2',
-    code: '20012',
-    category: '检验',
-    name: '呼吸道相关抗原鉴定二项(甲,乙流病毒)',
-    linkedItems: '呼吸道病毒抗原 (甲型流感) x1; 呼吸道病毒抗原 (腺病毒) x1',
-    processType: '替换',
-  },
-  {
-    key: '3',
-    code: '20013',
-    category: '检验',
-    name: '呼吸道相关抗原鉴定四项(甲,乙,合胞,腺病毒)',
-    linkedItems: '呼吸道病毒抗原 (腺病毒) x1; 呼吸道病毒抗原 (甲型流感) x1; 呼...',
-    processType: '移除',
-  },
-  {
-    key: '4',
-    code: '20014',
-    category: '检验',
-    name: '呼吸道相关抗原鉴定五项',
-    linkedItems: '呼吸道病毒抗原 (腺病毒) x1; 呼吸道病毒抗原 (甲型流感) x1; 呼...',
-    processType: '停用临床',
-  },
-  {
-    key: '5',
-    code: '20015',
-    category: '检验',
-    name: '肌酐测定 (酶促动力学法)',
-    linkedItems: '肌酐测定 (酶促动力学法) x1; 呼吸道病毒抗原 (腺病毒)',
-    processType: '调整',
-  },
-  {
-    key: '6',
-    code: '20016',
-    category: '检验',
-    name: '呼吸道病毒抗原 (腺病毒)',
-    linkedItems: '呼吸道病毒抗原 (腺病毒)',
-    processType: '',
-  },
-];
+// Removed as it is now fetched from priceListService
 
 const PriceListAdjustment: React.FC = () => {
-  const [selectedPlan, setSelectedPlan] = useState('1');
+  const [selectedPlan, setSelectedPlan] = useState<any>(null);
   const [activeTab, setActiveTab] = useState('1');
+  const [items, setItems] = useState<PriceItem[]>([]);
+  const [linkedItems, setLinkedItems] = useState<LinkedClinicalItem[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchItems = async () => {
+      setLoading(true);
+      const data = await priceListService.getItems(activeTab);
+      setItems(data);
+      if (activeTab === '3') {
+        const linkedData = await priceListService.getLinkedClinicalItems();
+        setLinkedItems(linkedData);
+      }
+      setLoading(false);
+    };
+    fetchItems();
+  }, [activeTab]);
 
   const columns = [
     { title: '生效', dataIndex: 'active', key: 'active', width: 60 },
@@ -410,95 +199,18 @@ const PriceListAdjustment: React.FC = () => {
   return (
     <div style={{ display: 'flex', flex: 1 }}>
       {/* Left Plan List Panel */}
-      <div style={{ width: 300, background: '#fff', borderRight: '1px solid #e8e8e8', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ padding: 12, borderBottom: '1px solid #f0f0f0' }}>
-          <Row gutter={[8, 8]}>
-            <Col span={12}>
-              <Select 
-                defaultValue="js" 
-                style={{ width: '100%' }}
-                options={[{ value: 'js', label: '江苏省' }]}
-              />
-            </Col>
-            <Col span={12}>
-              <DatePicker placeholder="生效日期开始" style={{ width: '100%' }} />
-            </Col>
-            <Col span={24}>
-              <Select 
-                placeholder="计划状态" 
-                style={{ width: '100%' }}
-                options={[{ value: 'all', label: '全部' }]}
-              />
-            </Col>
-          </Row>
-          <div style={{ marginTop: 12, display: 'flex', justifyContent: 'space-between' }}>
-            <Button type="primary" size="small" icon={<PlusOutlined />}>新建</Button>
-            <Button size="small">日志</Button>
-          </div>
-        </div>
-        <div style={{ flex: 1, overflowY: 'auto', padding: '8px 0' }}>
-          {planList.map(plan => (
-            <div 
-              key={plan.id}
-              onClick={() => setSelectedPlan(plan.id)}
-              style={{ 
-                padding: '12px 16px', 
-                cursor: 'pointer',
-                borderLeft: selectedPlan === plan.id ? '3px solid #1890ff' : '3px solid transparent',
-                background: selectedPlan === plan.id ? '#e6f7ff' : '#fff',
-                borderBottom: '1px solid #f0f0f0'
-              }}
-            >
-              <div style={{ marginBottom: 4 }}>
-                <Text type="secondary" style={{ fontSize: 12 }}>生效时间 </Text>
-                <Text strong style={{ fontSize: 12 }}>{plan.effectiveTime}</Text>
-                {getStatusTag(plan.status)}
-              </div>
-              <div style={{ marginBottom: 4 }}>
-                <Text type="secondary" style={{ fontSize: 12 }}>计划名称 </Text>
-                <Text style={{ fontSize: 12 }}>{plan.name}</Text>
-              </div>
-              <div style={{ marginBottom: 4 }}>
-                <Text type="secondary" style={{ fontSize: 12 }}>政策文件 </Text>
-                <Text style={{ fontSize: 12 }}>{plan.policy}</Text>
-              </div>
-              <div style={{ marginBottom: 4 }}>
-                <Text type="secondary" style={{ fontSize: 12 }}>计划条数 </Text>
-                <Text style={{ fontSize: 12 }}>{plan.stats}</Text>
-              </div>
-              <div style={{ marginBottom: 8 }}>
-                <Text type="secondary" style={{ fontSize: 12 }}>适用机构 </Text>
-                <Text style={{ fontSize: 12 }}>{plan.scope}</Text>
-              </div>
-              {plan.status === 'Draft' && (
-                <div style={{ textAlign: 'right' }}>
-                  <Space>
-                    <Button size="small">提交</Button>
-                    <Button size="small">修改</Button>
-                    <Button size="small" danger>删除</Button>
-                  </Space>
-                </div>
-              )}
-              {plan.status === 'Published' && (
-                <div style={{ textAlign: 'right' }}>
-                  <Button size="small">作废</Button>
-                </div>
-              )}
-              {plan.status === 'Obsolete' && (
-                <div style={{ textAlign: 'right' }}>
-                  <Button size="small">复制计划</Button>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
+      <div style={{ width: 300, background: '#fff', borderRight: '1px solid #e8e8e8' }}>
+        <PlanList 
+          planType="100" 
+          onSelect={(plan) => setSelectedPlan(plan)}
+        />
       </div>
 
       {/* Right Detail Panel */}
       <div style={{ flex: 1, background: '#fff', display: 'flex', flexDirection: 'column' }}>
         <div style={{ padding: '12px 20px', borderBottom: '1px solid #f0f0f0' }}>
           <Title level={5} style={{ margin: 0 }}>
-            2026-02-01 00:00 (按2026年医保物价管理条例要求变更物价项目)
+            {selectedPlan ? `${selectedPlan.beginDatetime} (${selectedPlan.planName})` : '请选择计划'}
           </Title>
         </div>
         <div style={{ padding: '0 20px' }}>
@@ -664,7 +376,8 @@ const PriceListAdjustment: React.FC = () => {
           <Table 
             rowSelection={{ type: 'checkbox' }}
             columns={activeTab === '2' ? adjustColumns : activeTab === '3' ? deactivateColumns : columns} 
-            dataSource={activeTab === '2' ? adjustTableData : activeTab === '3' ? deactivateTableData : tableData} 
+            dataSource={items} 
+            loading={loading}
             pagination={false}
             size="small"
             bordered
@@ -686,7 +399,7 @@ const PriceListAdjustment: React.FC = () => {
               <Table 
                 rowSelection={{ type: 'checkbox' }}
                 columns={linkedClinicalColumns} 
-                dataSource={linkedClinicalData} 
+                dataSource={linkedItems} 
                 pagination={false}
                 size="small"
                 bordered
