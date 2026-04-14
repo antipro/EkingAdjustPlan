@@ -13,6 +13,9 @@ import {
 } from '@ant-design/icons';
 import { priceListService, PriceItem, LinkedClinicalItem } from '../services/priceListService';
 import PlanList from './PlanList';
+import PriceItemModal from './PriceItemModal';
+import ReplacementItemModal from './ReplacementItemModal';
+import AdjustLinkedPriceItemsModal from './AdjustLinkedPriceItemsModal';
 
 const { 
   Table,
@@ -52,6 +55,10 @@ const PriceListAdjustment: React.FC = () => {
   const [items, setItems] = useState<PriceItem[]>([]);
   const [linkedItems, setLinkedItems] = useState<LinkedClinicalItem[]>([]);
   const [loading, setLoading] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [replacementModalVisible, setReplacementModalVisible] = useState(false);
+  const [adjustModalVisible, setAdjustModalVisible] = useState(false);
+  const [editingLinkedItem, setEditingLinkedItem] = useState<LinkedClinicalItem | null>(null);
 
   useEffect(() => {
     const fetchItems = async () => {
@@ -82,36 +89,108 @@ const PriceListAdjustment: React.FC = () => {
   ];
 
   const adjustColumns = [
-    { title: '生效', dataIndex: 'active', key: 'active', width: 60 },
-    { title: '收费项目编码', dataIndex: 'code', key: 'code', width: 120 },
-    { title: '项目名称', dataIndex: 'name', key: 'name', width: 150 },
-    { title: '规格', dataIndex: 'specs', key: 'specs', width: 60 },
-    { title: '单位', dataIndex: 'unit', key: 'unit', width: 60 },
-    { title: '原价(三级)', dataIndex: 'oldPrice3', key: 'oldPrice3', width: 100 },
-    { title: '原价(二级)', dataIndex: 'oldPrice2', key: 'oldPrice2', width: 100 },
-    { title: '原价(一级)', dataIndex: 'oldPrice1', key: 'oldPrice1', width: 100 },
     { 
-      title: '调价(三类)', 
-      dataIndex: 'newPrice3', 
-      key: 'newPrice3', 
-      width: 100,
-      render: (text: string) => <Input size="small" defaultValue={text} style={{ border: '1px solid #1890ff' }} />
+      title: '调整类型', 
+      dataIndex: 'adjustType', 
+      key: 'adjustType', 
+      width: 80,
+      render: (text: string) => {
+        if (text === 'U') return <Tag color="orange">修改</Tag>;
+        if (text === 'A') return <Tag color="green">新增</Tag>;
+        if (text === 'D') return <Tag color="red">停用</Tag>;
+        return text;
+      }
+    },
+    { title: '收费项目编码', dataIndex: ['detail', 'itemCode'], key: 'itemCode', width: 120 },
+    { 
+      title: '项目名称', 
+      dataIndex: ['detail', 'itemName'], 
+      key: 'itemName', 
+      width: 150,
+      render: (text: string, record: PriceItem) => {
+        try {
+          const changes = JSON.parse(record.changes || '{}');
+          if (changes.itemName) {
+            return (
+              <span>
+                <Text delete type="secondary">{changes.itemName.before}</Text>
+                <br />
+                <Text type="success">{changes.itemName.after}</Text>
+              </span>
+            );
+          }
+        } catch (e) {}
+        return text;
+      }
+    },
+    { title: '规格', dataIndex: ['detail', 'spec'], key: 'spec', width: 100 },
+    { title: '单位', dataIndex: ['detail', 'unit'], key: 'unit', width: 60 },
+    { 
+      title: '价格变动', 
+      key: 'priceChanges', 
+      width: 200,
+      render: (record: PriceItem) => {
+        const priceList = record.detail?.priceList || [];
+        return (
+          <Space direction="vertical" size={0}>
+            {priceList.map((p: any) => (
+              <div key={p.priceLevelUniqueCode}>
+                <Text type="secondary">等级{p.priceLevelCode}: </Text>
+                <Text strong>{p.retaBasicPrice}</Text>
+              </div>
+            ))}
+          </Space>
+        );
+      }
     },
     { 
-      title: '调价(二类)', 
-      dataIndex: 'newPrice2', 
-      key: 'newPrice2', 
-      width: 100,
-      render: (text: string) => <Input size="small" defaultValue={text} style={{ border: '1px solid #1890ff' }} />
+      title: '变动详情', 
+      dataIndex: 'changes', 
+      key: 'changes',
+      render: (text: string) => {
+        try {
+          const changes = JSON.parse(text || '{}');
+          const fieldMap: Record<string, string> = {
+            itemName: '项目名称',
+            itemCode: '项目编码',
+            spec: '规格',
+            unit: '单位',
+            itemClassName: '项目分类',
+            hpFeeName: '医保费用名称',
+            statisTypeName: '统计分类名称',
+            outRcptName: '门诊发票名称',
+            inRcptName: '住院发票名称',
+          };
+
+          const changeList = Object.entries(changes).map(([key, value]: [string, any]) => {
+            const label = fieldMap[key] || key;
+            return (
+              <div key={key} style={{ marginBottom: 2 }}>
+                <Text type="secondary" style={{ fontSize: 12 }}>{label}: </Text>
+                <Text delete type="secondary" style={{ fontSize: 12 }}>{value.before || '[空]'}</Text>
+                <Text style={{ margin: '0 4px', fontSize: 12 }}>{'->'}</Text>
+                <Text type="success" strong style={{ fontSize: 12 }}>{value.after || '[空]'}</Text>
+              </div>
+            );
+          });
+
+          return changeList.length > 0 ? <div>{changeList}</div> : <Text type="secondary">无变动</Text>;
+        } catch (e) {
+          return text;
+        }
+      }
     },
-    { 
-      title: '调价(一类)', 
-      dataIndex: 'newPrice1', 
-      key: 'newPrice1', 
+    {
+      title: '操作',
+      key: 'action',
       width: 100,
-      render: (text: string) => <Input size="small" defaultValue={text} style={{ border: '1px solid #1890ff' }} />
-    },
-    { title: '其他信息变更', dataIndex: 'otherChanges', key: 'otherChanges' },
+      render: () => (
+        <Space>
+          <Button type="link" size="small">查看</Button>
+          <Button type="link" size="small" danger>移除</Button>
+        </Space>
+      )
+    }
   ];
 
   const deactivateColumns = [
@@ -142,7 +221,7 @@ const PriceListAdjustment: React.FC = () => {
       width: 120,
       render: () => (
         <Space>
-          <Button type="link" size="small" style={{ padding: 0 }}>替换项</Button>
+          <Button type="link" size="small" style={{ padding: 0 }} onClick={() => setReplacementModalVisible(true)}>替换项</Button>
           <Button type="link" size="small" danger style={{ padding: 0 }}>移除</Button>
         </Space>
       )
@@ -159,10 +238,16 @@ const PriceListAdjustment: React.FC = () => {
       dataIndex: 'processType', 
       key: 'processType', 
       width: 150,
-      render: (text: string) => (
+      render: (text: string, record: LinkedClinicalItem) => (
         <Select 
-          defaultValue={text} 
+          value={text} 
           style={{ width: '100%' }}
+          onChange={(value) => {
+            const newLinkedItems = linkedItems.map(item => 
+              item.key === record.key ? { ...item, processType: value } : item
+            );
+            setLinkedItems(newLinkedItems);
+          }}
           options={[
             { value: '', label: '请选择' },
             { value: '替换', label: '替换' },
@@ -177,12 +262,25 @@ const PriceListAdjustment: React.FC = () => {
       title: '操作', 
       key: 'action', 
       width: 120,
-      render: () => (
-        <Space>
-          <Button type="link" size="small">编辑</Button>
-          <Button type="link" size="small">查看</Button>
-        </Space>
-      )
+      render: (_: any, record: LinkedClinicalItem) => {
+        const disabled = ['替换', '停用临床', '移除'].includes(record.processType);
+        return (
+          <Space>
+            <Button 
+              type="link" 
+              size="small" 
+              disabled={disabled}
+              onClick={() => {
+                setEditingLinkedItem(record);
+                setAdjustModalVisible(true);
+              }}
+            >
+              编辑
+            </Button>
+            <Button type="link" size="small">查看</Button>
+          </Space>
+        );
+      }
     },
   ];
 
@@ -256,7 +354,7 @@ const PriceListAdjustment: React.FC = () => {
               </Row>
               <div style={{ marginTop: 12, display: 'flex', justifyContent: 'space-between' }}>
                 <Space>
-                  <Button type="primary" size="small" icon={<PlusOutlined />}>添加</Button>
+                  <Button type="primary" size="small" icon={<PlusOutlined />} onClick={() => setModalVisible(true)}>添加</Button>
                   <Dropdown menu={{ items: [{ key: '1', label: '导入' }] }}>
                     <Button size="small" icon={<ImportOutlined />}>导入 <DownOutlined /></Button>
                   </Dropdown>
@@ -304,7 +402,7 @@ const PriceListAdjustment: React.FC = () => {
               </Row>
               <div style={{ marginTop: 12, display: 'flex', justifyContent: 'space-between' }}>
                 <Space>
-                  <Button type="primary" size="small" icon={<PlusOutlined />}>添加</Button>
+                  <Button type="primary" size="small" icon={<PlusOutlined />} onClick={() => setModalVisible(true)}>添加</Button>
                   <Dropdown menu={{ items: [{ key: '1', label: '导入' }] }}>
                     <Button size="small" icon={<ImportOutlined />}>导入 <DownOutlined /></Button>
                   </Dropdown>
@@ -356,7 +454,7 @@ const PriceListAdjustment: React.FC = () => {
               </Row>
               <div style={{ marginTop: 12, display: 'flex', justifyContent: 'space-between' }}>
                 <Space>
-                  <Button type="primary" size="small" icon={<PlusOutlined />}>新增</Button>
+                  <Button type="primary" size="small" icon={<PlusOutlined />} onClick={() => setModalVisible(true)}>新增</Button>
                   <Dropdown menu={{ items: [{ key: '1', label: '导入' }] }}>
                     <Button size="small" icon={<ImportOutlined />}>导入 <DownOutlined /></Button>
                   </Dropdown>
@@ -415,10 +513,38 @@ const PriceListAdjustment: React.FC = () => {
             </div>
           )}
           <div style={{ padding: '8px 16px', borderTop: '1px solid #f0f0f0' }}>
-            <Text type="secondary">共5条</Text>
+            <Text type="secondary">共{items.length}条</Text>
           </div>
         </div>
       </div>
+      <PriceItemModal 
+        visible={modalVisible} 
+        onCancel={() => setModalVisible(false)} 
+        onOk={(values) => {
+          console.log('New Price Item:', values);
+          setModalVisible(false);
+          antd.message.success('添加成功');
+        }}
+      />
+      <ReplacementItemModal
+        visible={replacementModalVisible}
+        onCancel={() => setReplacementModalVisible(false)}
+        onSave={(item) => {
+          console.log('Selected Replacement Item:', item);
+          setReplacementModalVisible(false);
+          antd.message.success('替换项保存成功');
+        }}
+      />
+      <AdjustLinkedPriceItemsModal
+        visible={adjustModalVisible}
+        item={editingLinkedItem}
+        onCancel={() => setAdjustModalVisible(false)}
+        onSave={(data) => {
+          console.log('Adjusted Linked Items:', data);
+          setAdjustModalVisible(false);
+          antd.message.success('保存成功');
+        }}
+      />
     </div>
   );
 };

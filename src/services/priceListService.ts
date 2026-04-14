@@ -14,11 +14,11 @@ export interface PricePlan {
 
 export interface PriceItem {
   key: string;
-  active: string;
-  code: string;
-  name: string;
-  specs: string;
-  unit: string;
+  active?: string;
+  code?: string;
+  name?: string;
+  specs?: string;
+  unit?: string;
   price3?: string;
   price2?: string;
   price1?: string;
@@ -38,7 +38,13 @@ export interface PriceItem {
   repName?: string;
   repUnit?: string;
   repItemCode?: string;
-  status?: string;
+  status?: string | number;
+  // New fields for adjustment details
+  adjustType?: string;
+  changes?: string;
+  detail?: any;
+  priceLevelList?: any[];
+  clinicItemList?: any[];
 }
 
 export interface LinkedClinicalItem {
@@ -123,18 +129,47 @@ const tableData: PriceItem[] = [
 const adjustTableData: PriceItem[] = [
   {
     key: '1',
-    active: '否',
-    code: '20251121001',
-    name: '前牙美容修复术',
-    specs: '/',
-    unit: '套',
-    oldPrice3: '200',
-    oldPrice2: '180',
-    oldPrice1: '',
-    newPrice3: '180',
-    newPrice2: '160',
-    newPrice1: '',
-    otherChanges: '项目名称: 前牙美容修复术 -> 前牙美容修复术...',
+    adjustType: 'U',
+    changes: '{"itemName":{"before":"234","after":"测试项目名称"}}',
+    priceLevelList: [],
+    clinicItemList: [],
+    detail: {
+      outRcptName: "诊察费",
+      processTimeStamp: 1776066839196,
+      itemClassName: "检验",
+      itemCode: "I243035",
+      hpFeeType: "1",
+      wbCode: "234",
+      spec: "324",
+      priceList: [
+        {
+          retaBasicPrice: 23,
+          priceCode: "4234",
+          processTimeStamp: 1776066839335,
+          priceLevelCode: "1",
+          province: "320000",
+          itemCode: "I243035",
+          beginTime: "2026-04-10 11:39:09",
+          id: "2042447265439682561",
+          provinceName: "江苏省",
+          priceLevelUniqueCode: "320000_1"
+        }
+      ],
+      reviewStatusName: "未审核",
+      itemName: "234",
+      unit: "次",
+      inRcptName: "诊察费",
+      statisTypeCode: "1207",
+      statisTypeName: "微波治疗",
+      inRcptCode: "Q",
+      itemClass: "C",
+      outRcptCode: "Q",
+      hpFeeName: "一般医疗服务费",
+      id: "2042447265188024322",
+      mnBillQty: 1,
+      pyCode: "234",
+      status: 0
+    }
   },
 ];
 

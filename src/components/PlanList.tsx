@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import * as antd from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { planService, PlanInfo, PageInfo } from '../services/planService';
+import PlanModal from './PlanModal';
 
 const { 
   Select, 
@@ -11,7 +12,9 @@ const {
   Space, 
   Pagination, 
   Typography,
-  Checkbox
+  Checkbox,
+  message,
+  Modal: AntdModal
 } = antd;
 
 const { Text } = Typography;
@@ -52,6 +55,10 @@ const PlanList: React.FC<PlanListProps> = ({
     date: null,
     status: 'all',
   });
+
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
+  const [editingPlan, setEditingPlan] = useState<PlanInfo | null>(null);
 
   const fetchPlans = useCallback(async (pageNum: number) => {
     setLoading(true);
@@ -99,6 +106,43 @@ const PlanList: React.FC<PlanListProps> = ({
     }
   };
 
+  const handleCreate = () => {
+    setModalMode('create');
+    setEditingPlan(null);
+    setModalVisible(true);
+    onCreate?.();
+  };
+
+  const handleEdit = (plan: PlanInfo) => {
+    setModalMode('edit');
+    setEditingPlan(plan);
+    setModalVisible(true);
+    onEdit?.(plan);
+  };
+
+  const handleModalOk = async (values: any) => {
+    console.log('Plan Modal Values:', values);
+    // In a real app, call planService.createPlan or updatePlan
+    message.success(`${modalMode === 'create' ? '新建' : '修改'}成功`);
+    setModalVisible(false);
+    fetchPlans(pagination.pageNum);
+  };
+
+  const handleDelete = (plan: PlanInfo) => {
+    AntdModal.confirm({
+      title: '确认删除',
+      content: `确定要删除计划 "${plan.planName}" 吗？`,
+      okText: '确定',
+      cancelText: '取消',
+      onOk: async () => {
+        // In a real app, call planService.deletePlan
+        message.success('删除成功');
+        fetchPlans(pagination.pageNum);
+        onDelete?.(plan);
+      }
+    });
+  };
+
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: '#fff' }}>
       <div style={{ padding: 12, borderBottom: '1px solid #f0f0f0' }}>
@@ -116,6 +160,12 @@ const PlanList: React.FC<PlanListProps> = ({
               placeholder="生效日期"
               onChange={(date) => setSearchParams(prev => ({ ...prev, date: date as any }))}
             />
+            -
+            <DatePicker 
+              style={{ width: '50%' }} 
+              placeholder="结束"
+              onChange={(date) => setSearchParams(prev => ({ ...prev, date: date as any }))}
+            />
           </div>
           <Select 
             value={searchParams.status} 
@@ -125,7 +175,7 @@ const PlanList: React.FC<PlanListProps> = ({
             onChange={(val) => setSearchParams(prev => ({ ...prev, status: val }))}
           />
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8 }}>
-            <Button type="primary" size="small" icon={<PlusOutlined />} onClick={onCreate}>
+            <Button type="primary" size="small" icon={<PlusOutlined />} onClick={handleCreate}>
               新建
             </Button>
             <Button size="small" onClick={onViewLogs}>日志</Button>
@@ -180,8 +230,8 @@ const PlanList: React.FC<PlanListProps> = ({
               <div style={{ textAlign: 'right' }}>
                 <Space>
                   <Button size="small" onClick={(e) => { e.stopPropagation(); onSubmit?.(plan); }}>提交</Button>
-                  <Button size="small" onClick={(e) => { e.stopPropagation(); onEdit?.(plan); }}>修改</Button>
-                  <Button size="small" danger onClick={(e) => { e.stopPropagation(); onDelete?.(plan); }}>删除</Button>
+                  <Button size="small" onClick={(e) => { e.stopPropagation(); handleEdit(plan); }}>修改</Button>
+                  <Button size="small" danger onClick={(e) => { e.stopPropagation(); handleDelete(plan); }}>删除</Button>
                 </Space>
               </div>
             )}
@@ -199,6 +249,14 @@ const PlanList: React.FC<PlanListProps> = ({
           />
         </div>
       </div>
+      <PlanModal 
+        visible={modalVisible}
+        mode={modalMode}
+        initialValues={editingPlan}
+        titlePrefix={planType === '200' ? '临床项目' : '价表项目'}
+        onCancel={() => setModalVisible(false)}
+        onOk={handleModalOk}
+      />
     </div>
   );
 };

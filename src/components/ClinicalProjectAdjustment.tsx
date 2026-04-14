@@ -14,6 +14,8 @@ import {
 } from '@ant-design/icons';
 import { clinicalProjectService, ClinicalItem } from '../services/clinicalProjectService';
 import PlanList from './PlanList';
+import ClinicalItemModal from './ClinicalItemModal';
+import AdjustLinkedPriceItemsModal from './AdjustLinkedPriceItemsModal';
 
 const { 
   Table,
@@ -47,41 +49,185 @@ const ClinicalProjectAdjustment: React.FC = () => {
   const [activeTab, setActiveTab] = useState('1');
   const [items, setItems] = useState<ClinicalItem[]>([]);
   const [loading, setLoading] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [adjustModalVisible, setAdjustModalVisible] = useState(false);
+  const [editingItem, setEditingItem] = useState<ClinicalItem | null>(null);
+
+  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+
+  const fetchItems = async () => {
+    setLoading(true);
+    const data = await clinicalProjectService.getItems(activeTab);
+    setItems(data);
+    setLoading(false);
+  };
 
   useEffect(() => {
-    const fetchItems = async () => {
-      setLoading(true);
-      const data = await clinicalProjectService.getItems(activeTab);
-      setItems(data);
-      setLoading(false);
-    };
     fetchItems();
   }, [activeTab]);
+
+  const handleBatchDelete = async () => {
+    if (selectedRowKeys.length === 0) {
+      antd.message.warning('请先选择要删除的项目');
+      return;
+    }
+
+    antd.Modal.confirm({
+      title: '确认删除',
+      content: `确定要删除选中的 ${selectedRowKeys.length} 个项目吗？`,
+      onOk: async () => {
+        try {
+          const res = await clinicalProjectService.deleteItems({
+            planId: selectedPlan?.id || '1241369796516249600',
+            idList: selectedRowKeys.map(key => key.toString()),
+          });
+          if (res.code === 'SUCCESS') {
+            antd.message.success(res.sucMsg);
+            setSelectedRowKeys([]);
+            fetchItems();
+          }
+        } catch (e) {
+          antd.message.error('删除失败');
+        }
+      }
+    });
+  };
 
   const columns = [
     { title: '生效', dataIndex: 'active', key: 'active', width: 60 },
     { title: '来源', dataIndex: 'source', key: 'source', width: 120 },
-    { title: '项目代码', dataIndex: 'code', key: 'code', width: 100 },
-    { title: '项目分类', dataIndex: 'category', key: 'category', width: 100 },
-    { title: '项目名称', dataIndex: 'name', key: 'name', width: 150 },
-    { title: '单位', dataIndex: 'unit', key: 'unit', width: 60 },
-    { title: '总价', dataIndex: 'totalPrice', key: 'totalPrice', width: 80 },
-    { title: '关联的价表项目', dataIndex: 'linkedItems', key: 'linkedItems', width: 250 },
-    { title: '高风险', dataIndex: 'highRisk', key: 'highRisk', width: 80 },
-    { title: '特殊医嘱类型', dataIndex: 'specialType', key: 'specialType', width: 120 },
-    { title: '备注说明', dataIndex: 'remarks', key: 'remarks' },
+    { title: '项目代码', dataIndex: ['detail', 'clinicCode'], key: 'clinicCode', width: 100 },
+    { title: '项目分类', dataIndex: ['detail', 'clinicClassName'], key: 'clinicClassName', width: 100 },
+    { title: '项目名称', dataIndex: ['detail', 'clinicName'], key: 'clinicName', width: 150 },
+    { title: '单位', dataIndex: ['detail', 'unit'], key: 'unit', width: 60 },
+    { 
+      title: '关联的价表项目', 
+      key: 'linkedItems', 
+      width: 300,
+      render: (record: ClinicalItem) => {
+        const priceList = record.detail?.priceList || [];
+        return (
+          <Space direction="vertical" size={0} style={{ width: '100%' }}>
+            {priceList.map((p: any) => (
+              <div key={p.id} style={{ fontSize: 12, borderBottom: '1px solid #f0f0f0', padding: '2px 0' }}>
+                <Text type="secondary">[{p.itemCode}] </Text>
+                <Text>{p.itemName}</Text>
+                <Text type="warning" style={{ marginLeft: 4 }}>x{p.quantity}{p.unit}</Text>
+              </div>
+            ))}
+          </Space>
+        );
+      }
+    },
+    { title: '备注说明', dataIndex: ['detail', 'remark'], key: 'remarks' },
   ];
 
   const adjustColumns = [
-    { title: '生效', dataIndex: 'active', key: 'active', width: 60 },
-    { title: '来源', dataIndex: 'source', key: 'source', width: 120 },
-    { title: '项目代码', dataIndex: 'code', key: 'code', width: 100 },
-    { title: '项目分类', dataIndex: 'category', key: 'category', width: 100 },
-    { title: '项目名称', dataIndex: 'name', key: 'name', width: 150 },
-    { title: '单位', dataIndex: 'unit', key: 'unit', width: 60 },
-    { title: '总价', dataIndex: 'totalPrice', key: 'totalPrice', width: 80 },
-    { title: '关联的价表项目', dataIndex: 'linkedItems', key: 'linkedItems', width: 250 },
-    { title: '信息变更', dataIndex: 'infoChanges', key: 'infoChanges' },
+    { 
+      title: '调整类型', 
+      dataIndex: 'adjustType', 
+      key: 'adjustType', 
+      width: 80,
+      render: (text: string) => {
+        if (text === 'U') return <Tag color="orange">修改</Tag>;
+        if (text === 'A') return <Tag color="green">新增</Tag>;
+        if (text === 'D') return <Tag color="red">停用</Tag>;
+        return text;
+      }
+    },
+    { title: '项目代码', dataIndex: ['detail', 'clinicCode'], key: 'clinicCode', width: 100 },
+    { title: '项目分类', dataIndex: ['detail', 'clinicClassName'], key: 'clinicClassName', width: 100 },
+    { 
+      title: '项目名称', 
+      dataIndex: ['detail', 'clinicName'], 
+      key: 'clinicName', 
+      width: 150,
+      render: (text: string, record: ClinicalItem) => {
+        try {
+          const changes = JSON.parse(record.changes || '{}');
+          if (changes.clinicName) {
+            return (
+              <span>
+                <Text delete type="secondary">{changes.clinicName.before}</Text>
+                <br />
+                <Text type="success">{changes.clinicName.after}</Text>
+              </span>
+            );
+          }
+        } catch (e) {}
+        return text;
+      }
+    },
+    { title: '单位', dataIndex: ['detail', 'unit'], key: 'unit', width: 60 },
+    { 
+      title: '关联的价表项目', 
+      key: 'linkedItems', 
+      width: 300,
+      render: (record: ClinicalItem) => {
+        const priceList = record.detail?.priceList || [];
+        return (
+          <Space direction="vertical" size={0} style={{ width: '100%' }}>
+            {priceList.map((p: any) => (
+              <div key={p.id} style={{ fontSize: 12, borderBottom: '1px solid #f0f0f0', padding: '2px 0' }}>
+                <Text type="secondary">[{p.itemCode}] </Text>
+                <Text>{p.itemName}</Text>
+                <Text type="warning" style={{ marginLeft: 4 }}>x{p.quantity}{p.unit}</Text>
+              </div>
+            ))}
+          </Space>
+        );
+      }
+    },
+    { 
+      title: '变动详情', 
+      dataIndex: 'changes', 
+      key: 'changes',
+      render: (text: string) => {
+        try {
+          const changes = JSON.parse(text || '{}');
+          const fieldMap: Record<string, string> = {
+            clinicName: '项目名称',
+            clinicCode: '项目编码',
+            spec: '规格',
+            unit: '单位',
+            clinicClassName: '项目分类',
+            inpEnable: '住院开立',
+            outpEnable: '门诊开立',
+            daysLimit: '开立限定天数',
+          };
+
+          const changeList = Object.entries(changes).map(([key, value]: [string, any]) => {
+            const label = fieldMap[key] || key;
+            return (
+              <div key={key} style={{ marginBottom: 2 }}>
+                <Text type="secondary" style={{ fontSize: 12 }}>{label}: </Text>
+                <Text delete type="secondary" style={{ fontSize: 12 }}>{value.before || '[空]'}</Text>
+                <Text style={{ margin: '0 4px', fontSize: 12 }}>{'->'}</Text>
+                <Text type="success" strong style={{ fontSize: 12 }}>{value.after || '[空]'}</Text>
+              </div>
+            );
+          });
+
+          return changeList.length > 0 ? <div>{changeList}</div> : <Text type="secondary">无变动</Text>;
+        } catch (e) {
+          return text;
+        }
+      }
+    },
+    {
+      title: '操作',
+      key: 'action',
+      width: 120,
+      render: (record: ClinicalItem) => (
+        <Space>
+          <Button type="link" size="small" onClick={() => {
+            setEditingItem(record);
+            setAdjustModalVisible(true);
+          }}>编辑</Button>
+          <Button type="link" size="small" danger>移除</Button>
+        </Space>
+      )
+    }
   ];
 
   const getStatusTag = (status: string) => {
@@ -163,13 +309,13 @@ const ClinicalProjectAdjustment: React.FC = () => {
               </Row>
               <div style={{ marginTop: 12, display: 'flex', justifyContent: 'space-between' }}>
                 <Space>
-                  <Button type="primary" size="small" icon={<PlusOutlined />}>添加</Button>
-                  <Dropdown menu={{ items: [{ key: '1', label: '导入' }] }}>
+                  <Button type="primary" size="small" icon={<PlusOutlined />} onClick={() => setModalVisible(true)}>添加</Button>
+                  <Dropdown menu={{ items: [{ key: '1', label: '移除', onClick: handleBatchDelete }] }}>
                     <Button size="small" icon={<ImportOutlined />}>导入 <DownOutlined /></Button>
                   </Dropdown>
                 </Space>
-                <Dropdown menu={{ items: [{ key: '1', label: '移除' }] }} danger>
-                  <Button size="small" danger>批量移除 <DownOutlined /></Button>
+                <Dropdown menu={{ items: [{ key: '1', label: '移除', onClick: handleBatchDelete }] }} danger>
+                  <Button size="small" danger onClick={handleBatchDelete}>批量移除 <DownOutlined /></Button>
                 </Dropdown>
               </div>
             </>
@@ -213,14 +359,14 @@ const ClinicalProjectAdjustment: React.FC = () => {
               </Row>
               <div style={{ marginTop: 12, display: 'flex', justifyContent: 'space-between' }}>
                 <Space>
-                  <Button type="primary" size="small" icon={<PlusOutlined />}>新增</Button>
+                  <Button type="primary" size="small" icon={<PlusOutlined />} onClick={() => setModalVisible(true)}>新增</Button>
                   <Dropdown menu={{ items: [{ key: '1', label: '导入' }] }}>
                     <Button size="small" icon={<ImportOutlined />}>导入 <DownOutlined /></Button>
                   </Dropdown>
                   <Button size="small">添加停用项</Button>
                 </Space>
-                <Dropdown menu={{ items: [{ key: '1', label: '移除' }] }} danger>
-                  <Button size="small" danger>批量移除 <DownOutlined /></Button>
+                <Dropdown menu={{ items: [{ key: '1', label: '移除', onClick: handleBatchDelete }] }} danger>
+                  <Button size="small" danger onClick={handleBatchDelete}>批量移除 <DownOutlined /></Button>
                 </Dropdown>
               </div>
             </>
@@ -228,7 +374,11 @@ const ClinicalProjectAdjustment: React.FC = () => {
         </div>
         <div style={{ flex: 1, padding: 0 }}>
           <Table 
-            rowSelection={{ type: 'checkbox' }}
+            rowSelection={{ 
+              type: 'checkbox',
+              selectedRowKeys,
+              onChange: (keys) => setSelectedRowKeys(keys)
+            }}
             columns={activeTab === '2' ? adjustColumns : columns} 
             dataSource={items} 
             loading={loading}
@@ -238,7 +388,7 @@ const ClinicalProjectAdjustment: React.FC = () => {
             scroll={{ x: 1500, y: 'calc(100vh - 350px)' }}
           />
           <div style={{ padding: '8px 16px', borderTop: '1px solid #f0f0f0', display: 'flex', alignItems: 'center' }}>
-            <Text type="secondary" style={{ marginRight: 16 }}>共5条</Text>
+            <Text type="secondary" style={{ marginRight: 16 }}>共{items.length}条</Text>
             <Space>
               <InfoCircleOutlined style={{ color: '#1890ff' }} />
               <Text type="secondary" style={{ color: '#1890ff' }}>提示: 导入后请手动关联价表项目、持续性计费规则等</Text>
@@ -246,6 +396,25 @@ const ClinicalProjectAdjustment: React.FC = () => {
           </div>
         </div>
       </div>
+      <ClinicalItemModal 
+        visible={modalVisible} 
+        onCancel={() => setModalVisible(false)} 
+        onOk={(values) => {
+          console.log('New Clinical Item:', values);
+          setModalVisible(false);
+          antd.message.success('添加成功');
+        }}
+      />
+      <AdjustLinkedPriceItemsModal
+        visible={adjustModalVisible}
+        item={editingItem}
+        onCancel={() => setAdjustModalVisible(false)}
+        onSave={(data) => {
+          console.log('Adjusted Price Items:', data);
+          setAdjustModalVisible(false);
+          antd.message.success('保存成功');
+        }}
+      />
     </div>
   );
 };
