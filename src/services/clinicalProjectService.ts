@@ -82,8 +82,18 @@ const adjustClinicalTableData: ClinicalItem[] = [
 ];
 
 export const clinicalProjectService = {
-  getPlans: async () => clinicalPlanList,
+  getPlans: async () => {
+    if (import.meta.env.VITE_MOCK === 'false') {
+      const response = await fetch('/api/clinical-plans');
+      return response.json();
+    }
+    return clinicalPlanList;
+  },
   getItems: async (tab: string) => {
+    if (import.meta.env.VITE_MOCK === 'false') {
+      const response = await fetch(`/api/clinical-items?tab=${tab}`);
+      return response.json();
+    }
     if (tab === '1') return clinicalTableData;
     if (tab === '2') return adjustClinicalTableData;
     return [];

@@ -168,12 +168,28 @@ const linkedClinicalData: LinkedClinicalItem[] = [
 ];
 
 export const priceListService = {
-  getPlans: async () => planList,
+  getPlans: async () => {
+    if (import.meta.env.VITE_MOCK === 'false') {
+      const response = await fetch('/api/price-plans');
+      return response.json();
+    }
+    return planList;
+  },
   getItems: async (tab: string) => {
+    if (import.meta.env.VITE_MOCK === 'false') {
+      const response = await fetch(`/api/price-items?tab=${tab}`);
+      return response.json();
+    }
     if (tab === '1') return tableData;
     if (tab === '2') return adjustTableData;
     if (tab === '3') return deactivateTableData;
     return [];
   },
-  getLinkedClinicalItems: async () => linkedClinicalData,
+  getLinkedClinicalItems: async () => {
+    if (import.meta.env.VITE_MOCK === 'false') {
+      const response = await fetch('/api/linked-clinical-items');
+      return response.json();
+    }
+    return linkedClinicalData;
+  },
 };

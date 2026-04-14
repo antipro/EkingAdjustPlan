@@ -49,5 +49,11 @@ const maintenanceData: MaintenanceItem[] = [
 ];
 
 export const maintenanceService = {
-  getMaintenanceData: async () => maintenanceData,
+  getMaintenanceData: async () => {
+    if (import.meta.env.VITE_MOCK === 'false') {
+      const response = await fetch('/api/maintenance-data');
+      return response.json();
+    }
+    return maintenanceData;
+  },
 };

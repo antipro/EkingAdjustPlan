@@ -73,6 +73,16 @@ const mockPlans: PlanInfo[] = [
 
 export const planService = {
   getPlans: async (params: { pageNum: number; pageSize: number; planType?: string }): Promise<PlanListResponse> => {
+    if (import.meta.env.VITE_MOCK === 'false') {
+      const query = new URLSearchParams({
+        pageNum: params.pageNum.toString(),
+        pageSize: params.pageSize.toString(),
+        ...(params.planType && { planType: params.planType })
+      });
+      const response = await fetch(`/api/plans?${query}`);
+      return response.json();
+    }
+
     // Simulate network delay
     await new Promise(resolve => setTimeout(resolve, 500));
     
