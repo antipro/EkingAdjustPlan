@@ -21,14 +21,49 @@ const {
   Tag,
 } = antd;
 
+import { PriceItem } from '../services/priceListService';
+
 interface PriceItemModalProps {
   visible: boolean;
+  item?: PriceItem | null;
+  categories?: any[];
   onCancel: () => void;
   onOk: (values: any) => void;
 }
 
-const PriceItemModal: React.FC<PriceItemModalProps> = ({ visible, onCancel, onOk }) => {
+const PriceItemModal: React.FC<PriceItemModalProps> = ({ visible, item, categories = [], onCancel, onOk }) => {
   const [form] = Form.useForm();
+
+  React.useEffect(() => {
+    if (visible) {
+      if (item) {
+        const detail = item.detail || {};
+        form.setFieldsValue({
+          category: item.category || detail.itemClassName || '其它',
+          itemCode: item.code || item.itemCode || detail.itemCode,
+          name: item.name || detail.itemName,
+          specs: item.specs || detail.spec || '/',
+          unit: item.unit || detail.unit || '次',
+          outRcpt: detail.outRcptName || '诊察费',
+          inRcpt: detail.inRcptName || '诊察费',
+          recordFront: detail.recordFrontName || '其他费',
+          statisType: detail.statisTypeName || '诊察费',
+          pyCode: detail.pyCode || '',
+          natCode: item.natCode || detail.natCode,
+          natName: item.natName || detail.natName,
+          remarks: item.remarks || detail.remarks,
+          alias: detail.alias,
+          outFront: detail.outFront,
+          accLarge: detail.accLarge,
+          accSmall: detail.accSmall,
+          provCode: detail.provCode,
+          insLimit: detail.insLimit,
+        });
+      } else {
+        form.resetFields();
+      }
+    }
+  }, [visible, item, form]);
 
   const priceColumns = [
     { title: '省', dataIndex: 'province', key: 'province' },
@@ -85,7 +120,7 @@ const PriceItemModal: React.FC<PriceItemModalProps> = ({ visible, onCancel, onOk
         <Row gutter={16}>
           <Col span={12}>
             <Form.Item label="项目分类" name="category" rules={[{ required: true }]}>
-              <Select options={[{ value: '其它', label: '其它' }]} />
+              <Select options={categories.length > 0 ? categories : [{ value: '其它', label: '其它' }]} />
             </Form.Item>
           </Col>
           <Col span={12}>

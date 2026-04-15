@@ -65,6 +65,7 @@ const PriceListAdjustment: React.FC = () => {
   const [replacementModalVisible, setReplacementModalVisible] = useState(false);
   const [adjustModalVisible, setAdjustModalVisible] = useState(false);
   const [editingLinkedItem, setEditingLinkedItem] = useState<LinkedClinicalItem | null>(null);
+  const [editingPriceItem, setEditingPriceItem] = useState<PriceItem | null>(null);
 
   const isEditable = selectedPlan?.status === '0' || selectedPlan?.status === '3';
 
@@ -158,6 +159,20 @@ const PriceListAdjustment: React.FC = () => {
     { title: '国家收费项目编码', dataIndex: 'natCode', key: 'natCode', width: 150 },
     { title: '国家收费项目名称', dataIndex: 'natName', key: 'natName', width: 150 },
     { title: '备注说明', dataIndex: 'remarks', key: 'remarks' },
+    {
+      title: '操作',
+      key: 'action',
+      width: 100,
+      render: (_, record: PriceItem) => (
+        <Space>
+          <Button type="link" size="small" disabled={!isEditable} onClick={() => {
+            setEditingPriceItem(record);
+            setModalVisible(true);
+          }}>编辑</Button>
+          <Button type="link" size="small" danger disabled={!isEditable}>移除</Button>
+        </Space>
+      )
+    }
   ];
 
   const adjustColumns = [
@@ -258,9 +273,12 @@ const PriceListAdjustment: React.FC = () => {
       title: '操作',
       key: 'action',
       width: 100,
-      render: () => (
+      render: (_, record: PriceItem) => (
         <Space>
-          <Button type="link" size="small">查看</Button>
+          <Button type="link" size="small" disabled={!isEditable} onClick={() => {
+            setEditingPriceItem(record);
+            setModalVisible(true);
+          }}>编辑</Button>
           <Button type="link" size="small" danger disabled={!isEditable}>移除</Button>
         </Space>
       )
@@ -636,21 +654,36 @@ const PriceListAdjustment: React.FC = () => {
       </div>
       <PriceItemModal 
         visible={modalVisible} 
-        onCancel={() => setModalVisible(false)} 
-        onOk={(values) => {
-          const newItem: PriceItem = {
-            key: Math.random().toString(36).substring(7),
-            name: values.name,
-            code: values.itemCode,
-            specs: values.specs,
-            unit: values.unit,
-            category: values.category,
-            adjustType: 'I',
-            remarks: values.remarks,
-          };
-          setItems(prev => [newItem, ...prev]);
+        item={editingPriceItem}
+        categories={categories}
+        onCancel={() => {
           setModalVisible(false);
-          antd.message.success('新增成功');
+          setEditingPriceItem(null);
+        }} 
+        onOk={(values) => {
+          if (editingPriceItem) {
+            // Update existing item
+            setItems(prev => prev.map(item => 
+              item.key === editingPriceItem.key ? { ...item, ...values } : item
+            ));
+            antd.message.success('修改成功');
+          } else {
+            // Add new item
+            const newItem: PriceItem = {
+              key: Math.random().toString(36).substring(7),
+              name: values.name,
+              code: values.itemCode,
+              specs: values.specs,
+              unit: values.unit,
+              category: values.category,
+              adjustType: 'I',
+              remarks: values.remarks,
+            };
+            setItems(prev => [newItem, ...prev]);
+            antd.message.success('新增成功');
+          }
+          setModalVisible(false);
+          setEditingPriceItem(null);
         }} 
       />
       <AddItemTransferModal
