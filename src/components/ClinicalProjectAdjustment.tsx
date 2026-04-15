@@ -105,7 +105,10 @@ const ClinicalProjectAdjustment: React.FC = () => {
     try {
       const res = await clinicalProjectService.batchSave({
         planId: selectedPlan.id,
-        clinicList: items,
+        clinicList: items.map(item => {
+          const { detail, ...rest } = item;
+          return { ...rest, ...detail };
+        }),
       });
       if (res.code === 'SUCCESS') {
         antd.message.success('保存成功');

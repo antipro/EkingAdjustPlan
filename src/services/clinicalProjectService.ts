@@ -297,7 +297,7 @@ export const clinicalProjectService = {
   },
   batchSave: async (params: { planId: string; clinicList: ClinicalItem[] }): Promise<{ code: string; sucMsg: string }> => {
     if (import.meta.env.VITE_MOCK === 'false') {
-      const response = await request<any>('/adjust/clinic/batch/save', {
+      const response = await request<any>('/api/adjust/clinic/batch/save', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(params),

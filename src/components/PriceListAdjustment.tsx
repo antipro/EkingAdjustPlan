@@ -119,7 +119,10 @@ const PriceListAdjustment: React.FC = () => {
     try {
       const res = await priceListService.batchSave({
         planId: selectedPlan.id,
-        itemList: items,
+        itemList: items.map(item => {
+          const { detail, ...rest } = item;
+          return { ...rest, ...detail };
+        }),
       });
       if (res.code === 'SUCCESS') {
         antd.message.success('保存成功');

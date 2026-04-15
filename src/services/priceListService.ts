@@ -236,7 +236,7 @@ export const priceListService = {
   },
   batchSave: async (params: { planId: string; itemList: PriceItem[] }): Promise<{ code: string; sucMsg: string }> => {
     if (import.meta.env.VITE_MOCK === 'false') {
-      const response = await request<any>('/adjust/price/batch/save', {
+      const response = await request<any>('/api/adjust/price/batch/save', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(params),
