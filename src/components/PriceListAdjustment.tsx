@@ -63,6 +63,8 @@ const PriceListAdjustment: React.FC = () => {
   const [adjustModalVisible, setAdjustModalVisible] = useState(false);
   const [editingLinkedItem, setEditingLinkedItem] = useState<LinkedClinicalItem | null>(null);
 
+  const isEditable = selectedPlan?.status === '0' || selectedPlan?.status === '3';
+
   const [params, setParams] = useState({
     pageNum: 1,
     pageSize: 20,
@@ -132,8 +134,10 @@ const PriceListAdjustment: React.FC = () => {
       width: 80,
       render: (text: string) => {
         if (text === 'U') return <Tag color="orange">修改</Tag>;
-        if (text === 'A') return <Tag color="green">新增</Tag>;
+        if (text === 'I') return <Tag color="green">新增</Tag>;
+        if (text === 'E') return <Tag color="cyan">启用</Tag>;
         if (text === 'D') return <Tag color="red">停用</Tag>;
+        if (text === 'A') return <Tag color="green">新增</Tag>; // Keep A for backward compatibility with mock
         return text;
       }
     },
@@ -223,7 +227,7 @@ const PriceListAdjustment: React.FC = () => {
       render: () => (
         <Space>
           <Button type="link" size="small">查看</Button>
-          <Button type="link" size="small" danger>移除</Button>
+          <Button type="link" size="small" danger disabled={!isEditable}>移除</Button>
         </Space>
       )
     }
@@ -257,8 +261,8 @@ const PriceListAdjustment: React.FC = () => {
       width: 120,
       render: () => (
         <Space>
-          <Button type="link" size="small" style={{ padding: 0 }} onClick={() => setReplacementModalVisible(true)}>替换项</Button>
-          <Button type="link" size="small" danger style={{ padding: 0 }}>移除</Button>
+          <Button type="link" size="small" style={{ padding: 0 }} onClick={() => setReplacementModalVisible(true)} disabled={!isEditable}>替换项</Button>
+          <Button type="link" size="small" danger style={{ padding: 0 }} disabled={!isEditable}>移除</Button>
         </Space>
       )
     },
@@ -279,11 +283,13 @@ const PriceListAdjustment: React.FC = () => {
           value={text} 
           style={{ width: '100%' }}
           onChange={(value) => {
+            if (!isEditable) return;
             const newLinkedItems = linkedItems.map(item => 
               item.key === record.key ? { ...item, processType: value } : item
             );
             setLinkedItems(newLinkedItems);
           }}
+          disabled={!isEditable}
           options={[
             { value: '', label: '请选择' },
             { value: '替换', label: '替换' },
@@ -299,7 +305,7 @@ const PriceListAdjustment: React.FC = () => {
       key: 'action', 
       width: 120,
       render: (_: any, record: LinkedClinicalItem) => {
-        const disabled = ['替换', '停用临床', '移除'].includes(record.processType);
+        const disabled = !isEditable || ['替换', '停用临床', '移除'].includes(record.processType);
         return (
           <Space>
             <Button 
@@ -395,13 +401,13 @@ const PriceListAdjustment: React.FC = () => {
               </Row>
               <div style={{ marginTop: 12, display: 'flex', justifyContent: 'space-between' }}>
                 <Space>
-                  <Button type="primary" size="small" icon={<PlusOutlined />} onClick={() => setTransferModalVisible(true)}>添加</Button>
-                  <Dropdown menu={{ items: [{ key: '1', label: '导入' }] }}>
-                    <Button size="small" icon={<ImportOutlined />}>导入 <DownOutlined /></Button>
+                  <Button type="primary" size="small" icon={<PlusOutlined />} onClick={() => setTransferModalVisible(true)} disabled={!isEditable}>添加</Button>
+                  <Dropdown menu={{ items: [{ key: '1', label: '导入' }] }} disabled={!isEditable}>
+                    <Button size="small" icon={<ImportOutlined />} disabled={!isEditable}>导入 <DownOutlined /></Button>
                   </Dropdown>
                 </Space>
-                <Dropdown menu={{ items: [{ key: '1', label: '移除' }] }} danger>
-                  <Button size="small" danger>批量移除 <DownOutlined /></Button>
+                <Dropdown menu={{ items: [{ key: '1', label: '移除' }] }} danger disabled={!isEditable}>
+                  <Button size="small" danger disabled={!isEditable}>批量移除 <DownOutlined /></Button>
                 </Dropdown>
               </div>
             </>
@@ -448,14 +454,14 @@ const PriceListAdjustment: React.FC = () => {
               </Row>
               <div style={{ marginTop: 12, display: 'flex', justifyContent: 'space-between' }}>
                 <Space>
-                  <Button type="primary" size="small" icon={<PlusOutlined />} onClick={() => setTransferModalVisible(true)}>添加</Button>
-                  <Dropdown menu={{ items: [{ key: '1', label: '导入' }] }}>
-                    <Button size="small" icon={<ImportOutlined />}>导入 <DownOutlined /></Button>
+                  <Button type="primary" size="small" icon={<PlusOutlined />} onClick={() => setTransferModalVisible(true)} disabled={!isEditable}>添加</Button>
+                  <Dropdown menu={{ items: [{ key: '1', label: '导入' }] }} disabled={!isEditable}>
+                    <Button size="small" icon={<ImportOutlined />} disabled={!isEditable}>导入 <DownOutlined /></Button>
                   </Dropdown>
                   <Button size="small" type="primary">导出临床项目</Button>
                 </Space>
-                <Dropdown menu={{ items: [{ key: '1', label: '移除' }] }} danger>
-                  <Button size="small" danger>批量移除 <DownOutlined /></Button>
+                <Dropdown menu={{ items: [{ key: '1', label: '移除' }] }} danger disabled={!isEditable}>
+                  <Button size="small" danger disabled={!isEditable}>批量移除 <DownOutlined /></Button>
                 </Dropdown>
               </div>
             </>
@@ -505,17 +511,17 @@ const PriceListAdjustment: React.FC = () => {
               </Row>
               <div style={{ marginTop: 12, display: 'flex', justifyContent: 'space-between' }}>
                 <Space>
-                  <Button type="primary" size="small" icon={<PlusOutlined />} onClick={() => setModalVisible(true)}>新增</Button>
-                  <Dropdown menu={{ items: [{ key: '1', label: '导入' }] }}>
-                    <Button size="small" icon={<ImportOutlined />}>导入 <DownOutlined /></Button>
+                  <Button type="primary" size="small" icon={<PlusOutlined />} onClick={() => setModalVisible(true)} disabled={!isEditable}>新增</Button>
+                  <Dropdown menu={{ items: [{ key: '1', label: '导入' }] }} disabled={!isEditable}>
+                    <Button size="small" icon={<ImportOutlined />} disabled={!isEditable}>导入 <DownOutlined /></Button>
                   </Dropdown>
-                  <Button size="small" onClick={() => setTransferModalVisible(true)}>添加停用项</Button>
-                  <Dropdown menu={{ items: [{ key: '1', label: '创建' }] }}>
-                    <Button size="small" type="primary">1对1创建临床项目 <DownOutlined /></Button>
+                  <Button size="small" onClick={() => setTransferModalVisible(true)} disabled={!isEditable}>添加停用项</Button>
+                  <Dropdown menu={{ items: [{ key: '1', label: '创建' }] }} disabled={!isEditable}>
+                    <Button size="small" type="primary" disabled={!isEditable}>1对1创建临床项目 <DownOutlined /></Button>
                   </Dropdown>
                 </Space>
-                <Dropdown menu={{ items: [{ key: '1', label: '删除' }] }} danger>
-                  <Button size="small" danger>批量删除 <DownOutlined /></Button>
+                <Dropdown menu={{ items: [{ key: '1', label: '删除' }] }} danger disabled={!isEditable}>
+                  <Button size="small" danger disabled={!isEditable}>批量删除 <DownOutlined /></Button>
                 </Dropdown>
               </div>
             </>
@@ -547,9 +553,9 @@ const PriceListAdjustment: React.FC = () => {
                   <antd.Checkbox style={{ marginLeft: 20 }}>仅显示未设置处理方式的项目</antd.Checkbox>
                 </Space>
                 <Space>
-                  <Button size="small" type="primary" ghost>替换</Button>
-                  <Button size="small" danger ghost>移除</Button>
-                  <Button size="small" type="primary" ghost>停用临床</Button>
+                  <Button size="small" type="primary" ghost disabled={!isEditable}>替换</Button>
+                  <Button size="small" danger ghost disabled={!isEditable}>移除</Button>
+                  <Button size="small" type="primary" ghost disabled={!isEditable}>停用临床</Button>
                 </Space>
               </div>
               <Table 
@@ -564,8 +570,8 @@ const PriceListAdjustment: React.FC = () => {
               <div style={{ padding: '8px 16px', borderTop: '1px solid #f0f0f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Text type="secondary">共6条</Text>
                 <Space>
-                  <Button type="primary">处理完成</Button>
-                  <Button>暂存</Button>
+                  <Button type="primary" disabled={!isEditable}>处理完成</Button>
+                  <Button disabled={!isEditable}>暂存</Button>
                 </Space>
               </div>
             </div>
@@ -579,18 +585,43 @@ const PriceListAdjustment: React.FC = () => {
         visible={modalVisible} 
         onCancel={() => setModalVisible(false)} 
         onOk={(values) => {
-          console.log('New Price Item:', values);
+          const newItem: PriceItem = {
+            key: Math.random().toString(36).substring(7),
+            name: values.name,
+            code: values.itemCode,
+            specs: values.specs,
+            unit: values.unit,
+            category: values.category,
+            adjustType: 'I',
+            remarks: values.remarks,
+          };
+          setItems(prev => [newItem, ...prev]);
           setModalVisible(false);
-          antd.message.success('添加成功');
-        }}
+          antd.message.success('新增成功');
+        }} 
       />
       <AddItemTransferModal
         visible={transferModalVisible}
         onCancel={() => setTransferModalVisible(false)}
-        onSave={(items) => {
-          console.log('Selected Items to Add:', items);
+        onSave={(selectedItems) => {
+          let type = 'U';
+          if (activeTab === '1') type = 'E';
+          else if (activeTab === '3') type = 'D';
+
+          const newItems: PriceItem[] = selectedItems.map(item => ({
+            key: item.id,
+            name: item.itemName,
+            code: item.itemCode,
+            specs: item.spec,
+            unit: item.unit,
+            category: item.itemClassName,
+            adjustType: type,
+            detail: item
+          }));
+
+          setItems(prev => [...newItems, ...prev]);
           setTransferModalVisible(false);
-          antd.message.success(`成功添加 ${items.length} 个项目`);
+          antd.message.success(`成功添加 ${selectedItems.length} 个项目`);
         }}
       />
       <ReplacementItemModal

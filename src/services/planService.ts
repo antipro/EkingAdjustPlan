@@ -87,6 +87,19 @@ const mockPlans: PlanInfo[] = [
     changeSummary: "启用2；调整0；停用0",
     orgNames: "智慧云医院",
     orgIdList: ["711912746777575424"]
+  },
+  {
+    id: "1241075063734665220",
+    planName: "已撤回的临床项目调整",
+    planType: "200",
+    planTypeName: "临床",
+    status: "3",
+    statusName: "撤回",
+    beginDatetime: "2026-03-01 00:00:00",
+    policy: "临床项目管理办法[2026]",
+    changeSummary: "启用1；调整2；停用1",
+    orgNames: "温泉镇分院",
+    orgIdList: ["909521624921800704"]
   }
 ];
 

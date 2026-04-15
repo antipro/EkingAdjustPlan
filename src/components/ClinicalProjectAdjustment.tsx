@@ -54,6 +54,8 @@ const ClinicalProjectAdjustment: React.FC = () => {
   const [adjustModalVisible, setAdjustModalVisible] = useState(false);
   const [editingItem, setEditingItem] = useState<ClinicalItem | null>(null);
 
+  const isEditable = selectedPlan?.status === '0' || selectedPlan?.status === '3';
+
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const [params, setParams] = useState({
     pageNum: 1,
@@ -254,8 +256,8 @@ const ClinicalProjectAdjustment: React.FC = () => {
           <Button type="link" size="small" onClick={() => {
             setEditingItem(record);
             setAdjustModalVisible(true);
-          }}>编辑</Button>
-          <Button type="link" size="small" danger>移除</Button>
+          }} disabled={!isEditable}>编辑</Button>
+          <Button type="link" size="small" danger disabled={!isEditable}>移除</Button>
         </Space>
       )
     }
@@ -345,13 +347,13 @@ const ClinicalProjectAdjustment: React.FC = () => {
               </Row>
               <div style={{ marginTop: 12, display: 'flex', justifyContent: 'space-between' }}>
                 <Space>
-                  <Button type="primary" size="small" icon={<PlusOutlined />} onClick={() => setModalVisible(true)}>添加</Button>
-                  <Dropdown menu={{ items: [{ key: '1', label: '移除', onClick: handleBatchDelete }] }}>
-                    <Button size="small" icon={<ImportOutlined />}>导入 <DownOutlined /></Button>
+                  <Button type="primary" size="small" icon={<PlusOutlined />} onClick={() => setModalVisible(true)} disabled={!isEditable}>添加</Button>
+                  <Dropdown menu={{ items: [{ key: '1', label: '移除', onClick: handleBatchDelete }] }} disabled={!isEditable}>
+                    <Button size="small" icon={<ImportOutlined />} disabled={!isEditable}>导入 <DownOutlined /></Button>
                   </Dropdown>
                 </Space>
-                <Dropdown menu={{ items: [{ key: '1', label: '移除', onClick: handleBatchDelete }] }} danger>
-                  <Button size="small" danger onClick={handleBatchDelete}>批量移除 <DownOutlined /></Button>
+                <Dropdown menu={{ items: [{ key: '1', label: '移除', onClick: handleBatchDelete }] }} danger disabled={!isEditable}>
+                  <Button size="small" danger onClick={handleBatchDelete} disabled={!isEditable}>批量移除 <DownOutlined /></Button>
                 </Dropdown>
               </div>
             </>
@@ -400,14 +402,14 @@ const ClinicalProjectAdjustment: React.FC = () => {
               </Row>
               <div style={{ marginTop: 12, display: 'flex', justifyContent: 'space-between' }}>
                 <Space>
-                  <Button type="primary" size="small" icon={<PlusOutlined />} onClick={() => setModalVisible(true)}>新增</Button>
-                  <Dropdown menu={{ items: [{ key: '1', label: '导入' }] }}>
-                    <Button size="small" icon={<ImportOutlined />}>导入 <DownOutlined /></Button>
+                  <Button type="primary" size="small" icon={<PlusOutlined />} onClick={() => setModalVisible(true)} disabled={!isEditable}>新增</Button>
+                  <Dropdown menu={{ items: [{ key: '1', label: '导入' }] }} disabled={!isEditable}>
+                    <Button size="small" icon={<ImportOutlined />} disabled={!isEditable}>导入 <DownOutlined /></Button>
                   </Dropdown>
-                  <Button size="small">添加停用项</Button>
+                  <Button size="small" disabled={!isEditable}>添加停用项</Button>
                 </Space>
-                <Dropdown menu={{ items: [{ key: '1', label: '移除', onClick: handleBatchDelete }] }} danger>
-                  <Button size="small" danger onClick={handleBatchDelete}>批量移除 <DownOutlined /></Button>
+                <Dropdown menu={{ items: [{ key: '1', label: '移除', onClick: handleBatchDelete }] }} danger disabled={!isEditable}>
+                  <Button size="small" danger onClick={handleBatchDelete} disabled={!isEditable}>批量移除 <DownOutlined /></Button>
                 </Dropdown>
               </div>
             </>

@@ -332,7 +332,7 @@ const PlanList: React.FC<PlanListProps> = ({
             {selectedId === plan.id && (
               <div style={{ textAlign: 'right' }}>
                 <Space>
-                  {plan.status === '0' && (
+                  {(plan.status === '0' || plan.status === '3') && (
                     <>
                       <Button size="small" onClick={(e) => { e.stopPropagation(); handleSubmit(plan); }}>提交</Button>
                       <Button size="small" onClick={(e) => { e.stopPropagation(); handleEdit(plan); }}>修改</Button>

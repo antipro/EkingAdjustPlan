@@ -43,6 +43,8 @@ const ClinicalProjectMaintenance: React.FC = () => {
   const [data, setData] = useState<MaintenanceItem[]>([]);
   const [loading, setLoading] = useState(false);
 
+  const isEditable = selectedPlan?.status === '0' || selectedPlan?.status === '3';
+
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -130,7 +132,7 @@ const ClinicalProjectMaintenance: React.FC = () => {
               <Col span={10} style={{ textAlign: 'right' }}>
                 <Space>
                   <Button type="primary" icon={<SearchOutlined />}>查询</Button>
-                  <Button type="primary" icon={<ReloadOutlined />}>重新校验</Button>
+                  <Button type="primary" icon={<ReloadOutlined />} disabled={!isEditable}>重新校验</Button>
                   <Button icon={<ExportOutlined />}>导出</Button>
                 </Space>
               </Col>
