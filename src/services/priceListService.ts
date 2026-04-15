@@ -234,4 +234,17 @@ export const priceListService = {
     }
     return linkedClinicalData;
   },
+  batchSave: async (params: { planId: string; itemList: PriceItem[] }): Promise<{ code: string; sucMsg: string }> => {
+    if (import.meta.env.VITE_MOCK === 'false') {
+      const response = await request<any>('/adjust/price/batch/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(params),
+      });
+      return response;
+    }
+    // Mock success
+    console.log('Mock Batch Save Price:', params);
+    return { code: 'SUCCESS', sucMsg: '保存成功' };
+  }
 };

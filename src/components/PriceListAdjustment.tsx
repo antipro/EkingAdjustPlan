@@ -59,6 +59,7 @@ const PriceListAdjustment: React.FC = () => {
   const [total, setTotal] = useState(0);
   const [modalVisible, setModalVisible] = useState(false);
   const [transferModalVisible, setTransferModalVisible] = useState(false);
+  const [transferModalStatus, setTransferModalStatus] = useState('0');
   const [replacementModalVisible, setReplacementModalVisible] = useState(false);
   const [adjustModalVisible, setAdjustModalVisible] = useState(false);
   const [editingLinkedItem, setEditingLinkedItem] = useState<LinkedClinicalItem | null>(null);
@@ -110,6 +111,26 @@ const PriceListAdjustment: React.FC = () => {
   const handleSearch = () => {
     setParams(prev => ({ ...prev, pageNum: 1 }));
     fetchItems();
+  };
+
+  const handleBatchSave = async () => {
+    if (!selectedPlan) return;
+    setLoading(true);
+    try {
+      const res = await priceListService.batchSave({
+        planId: selectedPlan.id,
+        itemList: items,
+      });
+      if (res.code === 'SUCCESS') {
+        antd.message.success('保存成功');
+      } else {
+        antd.message.error(res.sucMsg || '保存失败');
+      }
+    } catch (e) {
+      antd.message.error('保存失败');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const columns = [
@@ -401,7 +422,10 @@ const PriceListAdjustment: React.FC = () => {
               </Row>
               <div style={{ marginTop: 12, display: 'flex', justifyContent: 'space-between' }}>
                 <Space>
-                  <Button type="primary" size="small" icon={<PlusOutlined />} onClick={() => setTransferModalVisible(true)} disabled={!isEditable}>添加</Button>
+                  <Button type="primary" size="small" icon={<PlusOutlined />} onClick={() => {
+                    setTransferModalStatus('0');
+                    setTransferModalVisible(true);
+                  }} disabled={!isEditable}>添加</Button>
                   <Dropdown menu={{ items: [{ key: '1', label: '导入' }] }} disabled={!isEditable}>
                     <Button size="small" icon={<ImportOutlined />} disabled={!isEditable}>导入 <DownOutlined /></Button>
                   </Dropdown>
@@ -454,7 +478,10 @@ const PriceListAdjustment: React.FC = () => {
               </Row>
               <div style={{ marginTop: 12, display: 'flex', justifyContent: 'space-between' }}>
                 <Space>
-                  <Button type="primary" size="small" icon={<PlusOutlined />} onClick={() => setTransferModalVisible(true)} disabled={!isEditable}>添加</Button>
+                  <Button type="primary" size="small" icon={<PlusOutlined />} onClick={() => {
+                    setTransferModalStatus('0');
+                    setTransferModalVisible(true);
+                  }} disabled={!isEditable}>添加</Button>
                   <Dropdown menu={{ items: [{ key: '1', label: '导入' }] }} disabled={!isEditable}>
                     <Button size="small" icon={<ImportOutlined />} disabled={!isEditable}>导入 <DownOutlined /></Button>
                   </Dropdown>
@@ -515,7 +542,10 @@ const PriceListAdjustment: React.FC = () => {
                   <Dropdown menu={{ items: [{ key: '1', label: '导入' }] }} disabled={!isEditable}>
                     <Button size="small" icon={<ImportOutlined />} disabled={!isEditable}>导入 <DownOutlined /></Button>
                   </Dropdown>
-                  <Button size="small" onClick={() => setTransferModalVisible(true)} disabled={!isEditable}>添加停用项</Button>
+                  <Button size="small" onClick={() => {
+                    setTransferModalStatus('1');
+                    setTransferModalVisible(true);
+                  }} disabled={!isEditable}>添加停用项</Button>
                   <Dropdown menu={{ items: [{ key: '1', label: '创建' }] }} disabled={!isEditable}>
                     <Button size="small" type="primary" disabled={!isEditable}>1对1创建临床项目 <DownOutlined /></Button>
                   </Dropdown>
@@ -576,8 +606,9 @@ const PriceListAdjustment: React.FC = () => {
               </div>
             </div>
           )}
-          <div style={{ padding: '8px 16px', borderTop: '1px solid #f0f0f0' }}>
+          <div style={{ padding: '8px 16px', borderTop: '1px solid #f0f0f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Text type="secondary">共{items.length}条</Text>
+            <Button type="primary" onClick={handleBatchSave} disabled={!isEditable}>保存</Button>
           </div>
         </div>
       </div>
@@ -602,6 +633,7 @@ const PriceListAdjustment: React.FC = () => {
       />
       <AddItemTransferModal
         visible={transferModalVisible}
+        status={transferModalStatus}
         onCancel={() => setTransferModalVisible(false)}
         onSave={(selectedItems) => {
           let type = 'U';

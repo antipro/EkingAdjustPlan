@@ -99,6 +99,26 @@ const ClinicalProjectAdjustment: React.FC = () => {
     fetchItems();
   };
 
+  const handleBatchSave = async () => {
+    if (!selectedPlan) return;
+    setLoading(true);
+    try {
+      const res = await clinicalProjectService.batchSave({
+        planId: selectedPlan.id,
+        clinicList: items,
+      });
+      if (res.code === 'SUCCESS') {
+        antd.message.success('保存成功');
+      } else {
+        antd.message.error(res.sucMsg || '保存失败');
+      }
+    } catch (e) {
+      antd.message.error('保存失败');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleBatchDelete = async () => {
     if (selectedRowKeys.length === 0) {
       antd.message.warning('请先选择要删除的项目');
@@ -437,12 +457,15 @@ const ClinicalProjectAdjustment: React.FC = () => {
             bordered
             scroll={{ x: 1500, y: 'calc(100vh - 400px)' }}
           />
-          <div style={{ padding: '8px 16px', borderTop: '1px solid #f0f0f0', display: 'flex', alignItems: 'center' }}>
-            <Text type="secondary" style={{ marginRight: 16 }}>共{items.length}条</Text>
-            <Space>
-              <InfoCircleOutlined style={{ color: '#1890ff' }} />
-              <Text type="secondary" style={{ color: '#1890ff' }}>提示: 导入后请手动关联价表项目、持续性计费规则等</Text>
-            </Space>
+          <div style={{ padding: '8px 16px', borderTop: '1px solid #f0f0f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              <Text type="secondary" style={{ marginRight: 16 }}>共{items.length}条</Text>
+              <Space>
+                <InfoCircleOutlined style={{ color: '#1890ff' }} />
+                <Text type="secondary" style={{ color: '#1890ff' }}>提示: 导入后请手动关联价表项目、持续性计费规则等</Text>
+              </Space>
+            </div>
+            <Button type="primary" onClick={handleBatchSave} disabled={!isEditable}>保存</Button>
           </div>
         </div>
       </div>

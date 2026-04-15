@@ -16,13 +16,15 @@ interface AddItemTransferModalProps {
   onCancel: () => void;
   onSave: (selectedItems: ItemDictEntry[]) => void;
   title?: string;
+  status?: string;
 }
 
 const AddItemTransferModal: React.FC<AddItemTransferModalProps> = ({
   visible,
   onCancel,
   onSave,
-  title = "添加价表项目"
+  title = "添加价表项目",
+  status = '0'
 }) => {
   // Left side: Selected Items (已选项目)
   const [selectedItems, setSelectedItems] = useState<ItemDictEntry[]>([]);
@@ -48,7 +50,7 @@ const AddItemTransferModal: React.FC<AddItemTransferModalProps> = ({
       const res = await itemDictService.getPageList({
         pageNum,
         pageSize,
-        status: '0',
+        status,
         search: rightSearch,
         itemClass: rightCategory || 'C'
       });
