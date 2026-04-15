@@ -14,20 +14,30 @@ export interface ItemDictEntry {
   itemClassName: string;
   hpFeeCode?: string;
   hpFeeName?: string;
-  status?: string;
+  status?: number | string;
   priceCode?: string;
+  sybChargeItemCode?: string;
+  pyCode?: string;
+  wbCode?: string;
+  outRcptName?: string;
+  inRcptName?: string;
+  statisTypeName?: string;
+  nationChargeItemCode?: string;
 }
 
 export interface ItemDictResponse {
   code: string;
   data: {
-    data: ItemDictEntry[];
-    totalNum: number;
-    totalPage: number;
-    pageSize: number;
-    pageNum: number;
+    dataInfo: ItemDictEntry[];
+    pageInfo: {
+      pageSize: number;
+      totalCount: number;
+      totalPageNum: number;
+      pageNum: number;
+    };
   };
   sucMsg: string;
+  serial?: string;
 }
 
 export const itemDictService = {
@@ -56,23 +66,28 @@ export const itemDictService = {
     
     const mockItems: ItemDictEntry[] = Array.from({ length: 50 }).map((_, i) => ({
       id: `dict-${i}`,
-      itemCode: `1000${i}`,
-      itemName: `项目名称 ${i}`,
+      itemCode: `I24300${i}`,
+      itemName: i % 2 === 0 ? `交叉配血 ${i}` : `疑难交叉配血 ${i}`,
       spec: '/',
       unit: '次',
       itemClass: params.itemClass || 'C',
-      itemClassName: params.itemClass === 'C' ? '检查' : '其他',
-      priceCode: 'XXXXX'
+      itemClassName: params.itemClass === 'C' ? '检查' : '检验',
+      sybChargeItemCode: `26000001${i}`,
+      pyCode: 'JCPX',
+      wbCode: 'LWIJQRSU',
+      status: 0
     }));
 
     return {
       code: "SUCCESS",
       data: {
-        data: mockItems.slice((params.pageNum - 1) * params.pageSize, params.pageNum * params.pageSize),
-        totalNum: 50,
-        totalPage: 3,
-        pageSize: params.pageSize,
-        pageNum: params.pageNum
+        dataInfo: mockItems.slice((params.pageNum - 1) * params.pageSize, params.pageNum * params.pageSize),
+        pageInfo: {
+          totalCount: 50,
+          totalPageNum: 3,
+          pageSize: params.pageSize,
+          pageNum: params.pageNum
+        }
       },
       sucMsg: "操作成功"
     };

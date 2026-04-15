@@ -28,6 +28,14 @@ export default defineConfig(({mode}) => {
           },
           rewrite: (path) => path.replace(/^\/api/, ''),
         },
+        '/uc': {
+          target: env.VITE_API_UC_URL || 'http://192.168.1.231:9446/uc',
+          changeOrigin: true,
+          headers: {
+            ACCESS_TOKEN: env.ACCESS_TOKEN || '',
+            Authorization: env.AUTHORIZATION || '',
+          }
+        }
       } : undefined,
     },
   };

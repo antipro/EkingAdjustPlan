@@ -53,11 +53,11 @@ const AddItemTransferModal: React.FC<AddItemTransferModalProps> = ({
         itemClass: rightCategory || 'C'
       });
       if (res.code === 'SUCCESS') {
-        setAlternativeItems(res.data.data);
+        setAlternativeItems(res.data.dataInfo);
         setRightPagination({
-          current: res.data.pageNum,
-          pageSize: res.data.pageSize,
-          total: res.data.totalNum
+          current: res.data.pageInfo.pageNum,
+          pageSize: res.data.pageInfo.pageSize,
+          total: res.data.pageInfo.totalCount
         });
       }
     } finally {
@@ -94,7 +94,7 @@ const AddItemTransferModal: React.FC<AddItemTransferModalProps> = ({
   };
 
   const columns = [
-    { title: '项目收费编码', dataIndex: 'priceCode', key: 'priceCode', width: 100 },
+    { title: '项目收费编码', dataIndex: 'sybChargeItemCode', key: 'sybChargeItemCode', width: 120 },
     { title: '项目名称', dataIndex: 'itemName', key: 'itemName', width: 150, ellipsis: true },
     { title: '规格', dataIndex: 'spec', key: 'spec', width: 60 },
     { title: '单位', dataIndex: 'unit', key: 'unit', width: 60 },
@@ -103,7 +103,9 @@ const AddItemTransferModal: React.FC<AddItemTransferModalProps> = ({
   ];
 
   const filteredSelectedItems = selectedItems.filter(item => {
-    const matchSearch = item.itemName.includes(leftSearch) || item.itemCode.includes(leftSearch);
+    const matchSearch = item.itemName.includes(leftSearch) || 
+                       item.itemCode.includes(leftSearch) || 
+                       (item.sybChargeItemCode && item.sybChargeItemCode.includes(leftSearch));
     const matchCategory = leftCategory ? item.itemClass === leftCategory : true;
     return matchSearch && matchCategory;
   });
