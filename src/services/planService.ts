@@ -2,6 +2,8 @@
  * Common Service for Plan List with Pagination
  */
 
+import { request } from './request';
+
 export interface PlanInfo {
   id: string;
   planName: string;
@@ -96,8 +98,8 @@ export const planService = {
         pageSize: params.pageSize.toString(),
         ...(params.planType && { planType: params.planType })
       });
-      const response = await fetch(`/api/adjust/plan/page?${query}`);
-      return response.json();
+      const response = await request<any>(`/api/adjust/plan/page?${query}`);
+      return response;
     }
 
     // Simulate network delay
@@ -136,12 +138,12 @@ export const planService = {
     orgIdList: string[];
   }) => {
     if (import.meta.env.VITE_MOCK === 'false') {
-      const response = await fetch('/api/adjust/plan/save', {
+      const response = await request<any>('/api/adjust/plan/save', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
-      return response.json();
+      return response;
     }
     // Mock success
     console.log('Mock Save Plan:', data);
@@ -149,37 +151,37 @@ export const planService = {
   },
   submitPlan: async (planId: string) => {
     if (import.meta.env.VITE_MOCK === 'false') {
-      const response = await fetch(`/api/adjust/plan/submit?planId=${planId}`, { method: 'POST' });
-      return response.json();
+      const response = await request<any>(`/api/adjust/plan/submit?planId=${planId}`, { method: 'POST' });
+      return response;
     }
-    return { code: 'SUCCESS', sucMsg: '提交成功' };
+    return { code: 'SUCCESS', sucMsg: '提交成功' } as any;
   },
   withdrawPlan: async (planId: string) => {
     if (import.meta.env.VITE_MOCK === 'false') {
-      const response = await fetch(`/api/adjust/plan/withdraw?planId=${planId}`, { method: 'POST' });
-      return response.json();
+      const response = await request<any>(`/api/adjust/plan/withdraw?planId=${planId}`, { method: 'POST' });
+      return response;
     }
-    return { code: 'SUCCESS', sucMsg: '撤回成功' };
+    return { code: 'SUCCESS', sucMsg: '撤回成功' } as any;
   },
   deletePlan: async (planId: string) => {
     if (import.meta.env.VITE_MOCK === 'false') {
-      const response = await fetch(`/api/adjust/plan/delete?planId=${planId}`, { method: 'POST' });
-      return response.json();
+      const response = await request<any>(`/api/adjust/plan/delete?planId=${planId}`, { method: 'POST' });
+      return response;
     }
-    return { code: 'SUCCESS', sucMsg: '删除成功' };
+    return { code: 'SUCCESS', sucMsg: '删除成功' } as any;
   },
   cancelPlan: async (planId: string) => {
     if (import.meta.env.VITE_MOCK === 'false') {
-      const response = await fetch(`/api/adjust/plan/cancel?planId=${planId}`, { method: 'POST' });
-      return response.json();
+      const response = await request<any>(`/api/adjust/plan/cancel?planId=${planId}`, { method: 'POST' });
+      return response;
     }
-    return { code: 'SUCCESS', sucMsg: '作废成功' };
+    return { code: 'SUCCESS', sucMsg: '作废成功' } as any;
   },
   copyPlan: async (planId: string) => {
     if (import.meta.env.VITE_MOCK === 'false') {
-      const response = await fetch(`/api/adjust/plan/copy?planId=${planId}`, { method: 'POST' });
-      return response.json();
+      const response = await request<any>(`/api/adjust/plan/copy?planId=${planId}`, { method: 'POST' });
+      return response;
     }
-    return { code: 'SUCCESS', sucMsg: '复制成功' };
+    return { code: 'SUCCESS', sucMsg: '复制成功' } as any;
   }
 };

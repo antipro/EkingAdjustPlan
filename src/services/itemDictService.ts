@@ -2,6 +2,8 @@
  * Service for Item Dictionary (项目字典)
  */
 
+import { request } from './request';
+
 export interface ItemDictEntry {
   id: string;
   itemCode: string;
@@ -37,7 +39,7 @@ export const itemDictService = {
     itemClass: string;
   }): Promise<ItemDictResponse> => {
     if (import.meta.env.VITE_MOCK === 'false') {
-      const response = await fetch(`/api/item-dict/pageList?pageNum=${params.pageNum}&pageSize=${params.pageSize}`, {
+      const response = await request<any>(`/api/item-dict/pageList?pageNum=${params.pageNum}&pageSize=${params.pageSize}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -46,7 +48,7 @@ export const itemDictService = {
           itemClass: params.itemClass
         }),
       });
-      return response.json();
+      return response;
     }
 
     // Mock data

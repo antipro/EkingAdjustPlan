@@ -12,6 +12,8 @@ export interface ClinicalPlan {
   status: 'Draft' | 'Published' | 'Active' | 'Obsolete';
 }
 
+import { request } from './request';
+
 export interface ClinicalItem {
   key: string;
   active?: string;
@@ -261,19 +263,19 @@ const adjustClinicalTableData: ClinicalItem[] = [
 export const clinicalProjectService = {
   getPlans: async () => {
     if (import.meta.env.VITE_MOCK === 'false') {
-      const response = await fetch('/adjust/clinical-plans');
-      return response.json();
+      const response = await request<any>('/adjust/clinical-plans');
+      return response;
     }
     return clinicalPlanList;
   },
   getItems: async (params: { planId: string; queryString: string; adjustTypes: string[]; pageNum: number; pageSize: number }) => {
     if (import.meta.env.VITE_MOCK === 'false') {
-      const response = await fetch('/api/adjust/clinic/detail', {
+      const response = await request<any>('/api/adjust/clinic/detail', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(params),
       });
-      return response.json();
+      return response;
     }
     // Mock logic based on adjustTypes
     if (params.adjustTypes.includes('I')) return clinicalTableData;
@@ -282,12 +284,12 @@ export const clinicalProjectService = {
   },
   deleteItems: async (params: { planId: string; idList: string[] }): Promise<{ code: string; sucMsg: string }> => {
     if (import.meta.env.VITE_MOCK === 'false') {
-      const response = await fetch('/adjust/clinical-items/batch-delete', {
+      const response = await request<any>('/adjust/clinical-items/batch-delete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(params),
       });
-      return response.json();
+      return response;
     }
     // Mock success
     console.log('Mock Batch Delete:', params);

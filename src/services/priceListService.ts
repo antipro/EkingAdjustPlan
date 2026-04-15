@@ -2,6 +2,8 @@
  * Mock Service for 价表项目调整计划 (Price List Item Adjustment Plan)
  */
 
+import { request } from './request';
+
 export interface PricePlan {
   id: string;
   effectiveTime: string;
@@ -205,19 +207,19 @@ const linkedClinicalData: LinkedClinicalItem[] = [
 export const priceListService = {
   getPlans: async () => {
     if (import.meta.env.VITE_MOCK === 'false') {
-      const response = await fetch('/adjust/price-plans');
-      return response.json();
+      const response = await request<any>('/adjust/price-plans');
+      return response;
     }
     return planList;
   },
   getItems: async (params: { planId: string; queryString: string; adjustTypes: string[]; pageNum: number; pageSize: number }) => {
     if (import.meta.env.VITE_MOCK === 'false') {
-      const response = await fetch('/api/adjust/price/detail', {
+      const response = await request<any>('/api/adjust/price/detail', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(params),
       });
-      return response.json();
+      return response;
     }
     // Mock logic based on adjustTypes
     if (params.adjustTypes.includes('I')) return tableData;
@@ -227,8 +229,8 @@ export const priceListService = {
   },
   getLinkedClinicalItems: async () => {
     if (import.meta.env.VITE_MOCK === 'false') {
-      const response = await fetch('/adjust/linked-clinical-items');
-      return response.json();
+      const response = await request<any>('/adjust/linked-clinical-items');
+      return response;
     }
     return linkedClinicalData;
   },

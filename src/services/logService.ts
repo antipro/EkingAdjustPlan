@@ -2,6 +2,8 @@
  * Mock Service for 临床价表调整日志 (Clinical Price List Adjustment Log)
  */
 
+import { request } from './request';
+
 export interface LogEntry {
   id: string;
   adjustPlanId: string;
@@ -102,14 +104,14 @@ export interface AdjustExecuteResultQueryParam {
 export const logService = {
   getLogs: async (params: AdjustExecuteResultQueryParam): Promise<LogListResponse> => {
     if (import.meta.env.VITE_MOCK === 'false') {
-      const response = await fetch('/api/adjust/apply/result/page', {
+      const response = await request<any>('/api/adjust/apply/result/page', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(params)
       });
-      return response.json();
+      return response;
     }
     
     return {
