@@ -19,14 +19,14 @@ export default defineConfig(({mode}) => {
       // HMR is disabled in AI Studio via DISABLE_HMR env var.
       hmr: process.env.DISABLE_HMR !== 'true',
       proxy: env.VITE_MOCK === 'false' ? {
-        '/adjust': {
+        '/api': {
           target: env.VITE_API_BASE_URL || 'http://localhost:31006/dom-mdm',
           changeOrigin: true,
           headers: {
             ACCESS_TOKEN: env.ACCESS_TOKEN || '',
             Authorization: env.AUTHORIZATION || '',
           },
-          rewrite: (path) => path.replace(/^\/adjust/, ''),
+          rewrite: (path) => path.replace(/^\/api/, ''),
         },
       } : undefined,
     },

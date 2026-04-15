@@ -71,10 +71,30 @@ const ClinicalAdjustmentLog: React.FC = () => {
   };
 
   const columns = [
-    { title: '类别', dataIndex: 'itemTypeName', key: 'itemTypeName', width: 80 },
-    { title: '项目代码', dataIndex: 'itemCode', key: 'itemCode', width: 100 },
-    { title: '项目分类', dataIndex: 'itemClassName', key: 'itemClassName', width: 100 },
-    { title: '项目名称', dataIndex: 'itemName', key: 'itemName', width: 180 },
+    { 
+      title: '类别', 
+      dataIndex: 'itemTypeName', 
+      key: 'itemTypeName', 
+      width: 100,
+      render: (text: string) => text?.replace('项目', '') || text
+    },
+    { title: '项目代码', dataIndex: 'itemCode', key: 'itemCode', width: 120 },
+    { 
+      title: '项目分类', 
+      dataIndex: 'itemClassCode', 
+      key: 'itemClassCode', 
+      width: 100,
+      render: (text: string) => {
+        const map: Record<string, string> = {
+          'D': '检查',
+          'C': '诊察',
+          'L': '检验',
+          'P': '处置',
+        };
+        return map[text] || text;
+      }
+    },
+    { title: '项目名称', dataIndex: 'itemName', key: 'itemName', width: 200 },
     { title: '单位', dataIndex: 'unit', key: 'unit', width: 60 },
     { title: '规格', dataIndex: 'spec', key: 'spec', width: 80 },
     { title: '计划生效时间', dataIndex: 'planBeginTime', key: 'planBeginTime', width: 180 },
@@ -92,24 +112,28 @@ const ClinicalAdjustmentLog: React.FC = () => {
     },
     { 
       title: '状态', 
-      dataIndex: ['latestLog', 'result'], 
+      dataIndex: 'result', 
       key: 'status', 
       width: 80,
-      render: (result: number) => result === 1 ? '成功' : '失败'
+      render: (result: number) => result === 1 ? <antd.Tag color="success">成功</antd.Tag> : <antd.Tag color="error">失败</antd.Tag>
     },
-    { title: '生效时间', dataIndex: ['latestLog', 'executionTime'], key: 'executionTime', width: 180 },
+    { title: '生效时间', dataIndex: 'beginTime', key: 'beginTime', width: 180 },
     { 
       title: '操作', 
       key: 'action', 
       render: (_: any, record: LogEntry) => {
-        if (record.latestLog?.result === 1) {
+        if (record.result === 1) {
           const type = record.adjustType;
           if (type === 'U') return '调整';
           if (type === 'A') return '启用';
           if (type === 'D') return '停用';
           return type;
         }
-        return <Button type="link" size="small">查看失败原因</Button>;
+        return (
+          <antd.Tooltip title={record.failureReason || '未知错误'}>
+            <Button type="link" size="small" danger>查看失败原因</Button>
+          </antd.Tooltip>
+        );
       }
     },
   ];

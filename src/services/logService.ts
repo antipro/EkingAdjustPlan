@@ -5,21 +5,22 @@
 export interface LogEntry {
   id: string;
   adjustPlanId: string;
-  itemName: string;
   itemType: string;
-  adjustType: string;
-  itemCode: string;
-  changes: string;
   itemTypeName: string;
-  itemClassName: string;
+  itemCode: string;
+  itemName: string;
+  itemClassCode: string;
   unit: string;
   spec: string;
   planBeginTime: string;
-  latestLog: {
-    executionTime: string;
-    result: number;
-    id: string;
-  };
+  adjustType: string;
+  changes: string;
+  childAdjustId?: string;
+  replaceItemCode?: string;
+  replaceItemName?: string;
+  beginTime: string;
+  result: number;
+  failureReason?: string;
 }
 
 export interface LogListResponse {
@@ -39,99 +40,52 @@ export interface LogListResponse {
 
 const logData: LogEntry[] = [
   {
-    id: "1",
-    adjustPlanId: "p1",
-    itemName: "前牙美容修复术",
-    itemType: "200",
-    adjustType: "A",
-    itemCode: "C00903",
-    changes: "{}",
-    itemTypeName: "临床",
-    itemClassName: "处置",
-    unit: "套",
-    spec: "",
-    planBeginTime: "2026-04-01 00:00:00",
-    latestLog: {
-      executionTime: "2026-04-01 00:01:23",
-      result: 1,
-      id: "l1"
-    }
-  },
-  {
-    id: "2",
-    adjustPlanId: "p1",
-    itemName: "多学科诊疗费",
+    id: "1241787199993675776",
+    adjustPlanId: "1241786916454531072",
+    itemName: "肠镜（体检1）",
     itemType: "200",
     adjustType: "U",
-    itemCode: "C00904",
-    changes: "{}",
-    itemTypeName: "临床",
-    itemClassName: "其他",
-    unit: "套",
-    spec: "",
-    planBeginTime: "2026-04-01 00:00:00",
-    latestLog: {
-      executionTime: "2026-04-01 00:01:23",
-      result: 1,
-      id: "l2"
-    }
-  },
-  {
-    id: "3",
-    adjustPlanId: "p1",
-    itemName: "挂号费",
-    itemType: "100",
-    adjustType: "D",
-    itemCode: "C00905",
-    changes: "{}",
-    itemTypeName: "价表",
-    itemClassName: "其他",
+    itemCode: "C001219",
+    planBeginTime: "2026-10-01 00:00:00",
+    changes: "{\"clinicName\":{\"before\":\"肠镜（体检）\",\"after\":\"肠镜（体检1）\"},\"daysLimit\":{\"before\":3,\"after\":5}}",
+    itemTypeName: "临床项目",
+    beginTime: "2026-04-15 13:41:40",
+    result: 1,
+    itemClassCode: "D",
     unit: "次",
-    spec: "",
-    planBeginTime: "2026-04-01 00:00:00",
-    latestLog: {
-      executionTime: "2026-04-01 00:01:23",
-      result: 1,
-      id: "l3"
-    }
+    spec: "/"
   },
   {
-    id: "4",
-    adjustPlanId: "p1",
-    itemName: "诊疗费",
-    itemType: "100",
-    adjustType: "A",
-    itemCode: "C00906",
+    id: "1241392974827356160",
+    adjustPlanId: "1241369796516249600",
+    itemName: "肠镜（体检）",
+    itemType: "200",
+    adjustType: "U",
+    itemCode: "C001219",
+    planBeginTime: "2026-10-01 00:00:00",
     changes: "{}",
-    itemTypeName: "价表",
-    itemClassName: "其他",
+    itemTypeName: "临床项目",
+    beginTime: "",
+    result: 0,
+    itemClassCode: "D",
     unit: "次",
-    spec: "",
-    planBeginTime: "2026-04-01 00:00:00",
-    latestLog: {
-      executionTime: "2026-04-01 00:01:23",
-      result: 0,
-      id: "l4"
-    }
+    spec: "/"
   },
   {
-    id: "5",
-    adjustPlanId: "p1",
-    itemName: "门诊病历手册",
+    id: "1241100460979388416",
+    adjustPlanId: "1241075063734665216",
     itemType: "100",
     adjustType: "U",
-    itemCode: "C00907",
-    changes: "{}",
-    itemTypeName: "价表",
-    itemClassName: "其他",
-    unit: "册",
-    spec: "",
-    planBeginTime: "2026-04-01 00:00:00",
-    latestLog: {
-      executionTime: "2026-04-01 00:01:23",
-      result: 0,
-      id: "l5"
-    }
+    itemCode: "I243035",
+    changes: "{\"itemName\":{\"before\":\"234\",\"after\":\"测试项目名称\"}}",
+    spec: "324",
+    result: 1,
+    itemName: "测试项目名称",
+    unit: "次",
+    planBeginTime: "2026-10-01 00:00:00",
+    itemTypeName: "价表项目",
+    beginTime: "2026-04-15 11:34:48",
+    itemClassCode: "C"
   }
 ];
 
