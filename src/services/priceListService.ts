@@ -205,14 +205,14 @@ const linkedClinicalData: LinkedClinicalItem[] = [
 export const priceListService = {
   getPlans: async () => {
     if (import.meta.env.VITE_MOCK === 'false') {
-      const response = await fetch('/api/price-plans');
+      const response = await fetch('/adjust/price-plans');
       return response.json();
     }
     return planList;
   },
   getItems: async (tab: string) => {
     if (import.meta.env.VITE_MOCK === 'false') {
-      const response = await fetch(`/api/price-items?tab=${tab}`);
+      const response = await fetch(`/adjust/price-items?tab=${tab}`);
       return response.json();
     }
     if (tab === '1') return tableData;
@@ -222,7 +222,7 @@ export const priceListService = {
   },
   getLinkedClinicalItems: async () => {
     if (import.meta.env.VITE_MOCK === 'false') {
-      const response = await fetch('/api/linked-clinical-items');
+      const response = await fetch('/adjust/linked-clinical-items');
       return response.json();
     }
     return linkedClinicalData;

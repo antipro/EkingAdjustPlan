@@ -87,7 +87,7 @@ const logData: LogEntry[] = [
 export const logService = {
   getLogs: async () => {
     if (import.meta.env.VITE_MOCK === 'false') {
-      const response = await fetch('/api/logs');
+      const response = await fetch('/adjust/logs');
       return response.json();
     }
     return logData;

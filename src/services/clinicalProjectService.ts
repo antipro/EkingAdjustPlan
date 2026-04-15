@@ -261,14 +261,14 @@ const adjustClinicalTableData: ClinicalItem[] = [
 export const clinicalProjectService = {
   getPlans: async () => {
     if (import.meta.env.VITE_MOCK === 'false') {
-      const response = await fetch('/api/clinical-plans');
+      const response = await fetch('/adjust/clinical-plans');
       return response.json();
     }
     return clinicalPlanList;
   },
   getItems: async (tab: string) => {
     if (import.meta.env.VITE_MOCK === 'false') {
-      const response = await fetch(`/api/clinical-items?tab=${tab}`);
+      const response = await fetch(`/adjust/clinical-items?tab=${tab}`);
       return response.json();
     }
     if (tab === '1') return clinicalTableData;
@@ -277,7 +277,7 @@ export const clinicalProjectService = {
   },
   deleteItems: async (params: { planId: string; idList: string[] }): Promise<{ code: string; sucMsg: string }> => {
     if (import.meta.env.VITE_MOCK === 'false') {
-      const response = await fetch('/api/clinical-items/batch-delete', {
+      const response = await fetch('/adjust/clinical-items/batch-delete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(params),
