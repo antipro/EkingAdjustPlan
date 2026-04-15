@@ -49,7 +49,7 @@ const PriceItemModal: React.FC<PriceItemModalProps> = ({ visible, item, categori
           recordFront: detail.recordFrontName || '其他费',
           statisType: detail.statisTypeName || '诊察费',
           pyCode: detail.pyCode || '',
-          natCode: item.natCode || detail.natCode,
+          nationChargeItemCode: item.nationChargeItemCode || detail.nationChargeItemCode,
           natName: item.natName || detail.natName,
           remarks: item.remarks || detail.remarks,
           alias: detail.alias,
@@ -176,7 +176,7 @@ const PriceItemModal: React.FC<PriceItemModalProps> = ({ visible, item, categori
 
         <Row gutter={16}>
           <Col span={12}>
-            <Form.Item label="国家收费编码" name="natCode">
+            <Form.Item label="国家收费编码" name="nationChargeItemCode">
               <Input />
             </Form.Item>
           </Col>
