@@ -81,7 +81,7 @@ const PlanModal: React.FC<PlanModalProps> = ({
           name="beginDatetime" 
           rules={[{ required: true, message: '请选择生效时间' }]}
         >
-          <DatePicker showTime format="YYYY-MM-DD HH:mm" style={{ width: '100%' }} />
+          <DatePicker showTime format="YYYY-MM-DD HH:mm:mm" style={{ width: '100%' }} />
         </Form.Item>
 
         <Form.Item 
