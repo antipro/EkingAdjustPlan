@@ -16,6 +16,7 @@ import PlanList from './PlanList';
 import PriceItemModal from './PriceItemModal';
 import ReplacementItemModal from './ReplacementItemModal';
 import AdjustLinkedPriceItemsModal from './AdjustLinkedPriceItemsModal';
+import AddItemTransferModal from './AddItemTransferModal';
 
 const { 
   Table,
@@ -57,6 +58,7 @@ const PriceListAdjustment: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [total, setTotal] = useState(0);
   const [modalVisible, setModalVisible] = useState(false);
+  const [transferModalVisible, setTransferModalVisible] = useState(false);
   const [replacementModalVisible, setReplacementModalVisible] = useState(false);
   const [adjustModalVisible, setAdjustModalVisible] = useState(false);
   const [editingLinkedItem, setEditingLinkedItem] = useState<LinkedClinicalItem | null>(null);
@@ -393,7 +395,7 @@ const PriceListAdjustment: React.FC = () => {
               </Row>
               <div style={{ marginTop: 12, display: 'flex', justifyContent: 'space-between' }}>
                 <Space>
-                  <Button type="primary" size="small" icon={<PlusOutlined />} onClick={() => setModalVisible(true)}>添加</Button>
+                  <Button type="primary" size="small" icon={<PlusOutlined />} onClick={() => setTransferModalVisible(true)}>添加</Button>
                   <Dropdown menu={{ items: [{ key: '1', label: '导入' }] }}>
                     <Button size="small" icon={<ImportOutlined />}>导入 <DownOutlined /></Button>
                   </Dropdown>
@@ -446,7 +448,7 @@ const PriceListAdjustment: React.FC = () => {
               </Row>
               <div style={{ marginTop: 12, display: 'flex', justifyContent: 'space-between' }}>
                 <Space>
-                  <Button type="primary" size="small" icon={<PlusOutlined />} onClick={() => setModalVisible(true)}>添加</Button>
+                  <Button type="primary" size="small" icon={<PlusOutlined />} onClick={() => setTransferModalVisible(true)}>添加</Button>
                   <Dropdown menu={{ items: [{ key: '1', label: '导入' }] }}>
                     <Button size="small" icon={<ImportOutlined />}>导入 <DownOutlined /></Button>
                   </Dropdown>
@@ -507,7 +509,7 @@ const PriceListAdjustment: React.FC = () => {
                   <Dropdown menu={{ items: [{ key: '1', label: '导入' }] }}>
                     <Button size="small" icon={<ImportOutlined />}>导入 <DownOutlined /></Button>
                   </Dropdown>
-                  <Button size="small">添加停用项</Button>
+                  <Button size="small" onClick={() => setTransferModalVisible(true)}>添加停用项</Button>
                   <Dropdown menu={{ items: [{ key: '1', label: '创建' }] }}>
                     <Button size="small" type="primary">1对1创建临床项目 <DownOutlined /></Button>
                   </Dropdown>
@@ -580,6 +582,15 @@ const PriceListAdjustment: React.FC = () => {
           console.log('New Price Item:', values);
           setModalVisible(false);
           antd.message.success('添加成功');
+        }}
+      />
+      <AddItemTransferModal
+        visible={transferModalVisible}
+        onCancel={() => setTransferModalVisible(false)}
+        onSave={(items) => {
+          console.log('Selected Items to Add:', items);
+          setTransferModalVisible(false);
+          antd.message.success(`成功添加 ${items.length} 个项目`);
         }}
       />
       <ReplacementItemModal
