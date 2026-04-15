@@ -112,15 +112,49 @@ const AddItemTransferModal: React.FC<AddItemTransferModalProps> = ({
     return matchSearch && matchCategory;
   });
 
+  const handleSave = async () => {
+    if (selectedItems.length === 0) {
+      onCancel();
+      return;
+    }
+
+    setRightLoading(true);
+    try {
+      const detailedItems = await Promise.all(
+        selectedItems.map(async (item) => {
+          try {
+            const res = await itemDictService.queryDetail(item.itemCode);
+            if (res.code === 'SUCCESS') {
+              // Merge the detail data into the item
+              return {
+                ...item,
+                ...res.data.dataInfo,
+                // Ensure we keep the original ID if needed, or use the one from detail
+                id: res.data.dataInfo.id || item.id
+              };
+            }
+          } catch (e) {
+            console.error(`Failed to fetch detail for ${item.itemCode}`, e);
+          }
+          return item;
+        })
+      );
+      onSave(detailedItems);
+    } finally {
+      setRightLoading(false);
+    }
+  };
+
   return (
     <Modal
       title={title}
       open={visible}
       onCancel={onCancel}
-      onOk={() => onSave(selectedItems)}
+      onOk={handleSave}
       width={1200}
       okText="保存"
       cancelText="取消"
+      confirmLoading={rightLoading}
       styles={{ body: { padding: '12px 16px' } }}
     >
       <Row gutter={16} align="middle">
