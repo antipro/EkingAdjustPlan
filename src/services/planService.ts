@@ -13,6 +13,7 @@ export interface PlanInfo {
   policy: string;
   changeSummary: string;
   orgNames: string;
+  orgIdList?: string[];
 }
 
 export interface PageInfo {
@@ -44,6 +45,7 @@ const mockPlans: PlanInfo[] = [
     policy: "江苏省医保医疗服务价格调整公式[202607]",
     changeSummary: "启用0；调整1；停用0",
     orgNames: "智慧云医院，温泉镇分院，南河镇分院",
+    orgIdList: ["711912746777575424", "909521624921800704", "1037000793053462528"]
   },
   {
     id: "1241075063734665217",
@@ -56,6 +58,7 @@ const mockPlans: PlanInfo[] = [
     policy: "临床项目管理办法[2026]",
     changeSummary: "启用3；调整5；停用4",
     orgNames: "不限",
+    orgIdList: []
   },
   {
     id: "1241075063734665218",
@@ -68,6 +71,7 @@ const mockPlans: PlanInfo[] = [
     policy: "年度维护规程",
     changeSummary: "启用10；调整20；停用5",
     orgNames: "智慧云医院",
+    orgIdList: ["711912746777575424"]
   },
   {
     id: "1241075063734665219",
@@ -80,6 +84,7 @@ const mockPlans: PlanInfo[] = [
     policy: "临床拓展项目管理细则[2026]",
     changeSummary: "启用2；调整0；停用0",
     orgNames: "智慧云医院",
+    orgIdList: ["711912746777575424"]
   }
 ];
 
@@ -121,5 +126,60 @@ export const planService = {
       serial: "dom-mdm_" + Math.random().toString(36).substring(7),
       sucMsg: "操作成功"
     };
+  },
+  savePlan: async (data: {
+    id?: string;
+    beginDatetime: string;
+    planType: string;
+    planName: string;
+    policy: string;
+    orgIdList: string[];
+  }) => {
+    if (import.meta.env.VITE_MOCK === 'false') {
+      const response = await fetch('/api/adjust/plan/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      return response.json();
+    }
+    // Mock success
+    console.log('Mock Save Plan:', data);
+    return { code: 'SUCCESS', sucMsg: '保存成功' };
+  },
+  submitPlan: async (planId: string) => {
+    if (import.meta.env.VITE_MOCK === 'false') {
+      const response = await fetch(`/api/adjust/plan/submit?planId=${planId}`, { method: 'POST' });
+      return response.json();
+    }
+    return { code: 'SUCCESS', sucMsg: '提交成功' };
+  },
+  withdrawPlan: async (planId: string) => {
+    if (import.meta.env.VITE_MOCK === 'false') {
+      const response = await fetch(`/api/adjust/plan/withdraw?planId=${planId}`, { method: 'POST' });
+      return response.json();
+    }
+    return { code: 'SUCCESS', sucMsg: '撤回成功' };
+  },
+  deletePlan: async (planId: string) => {
+    if (import.meta.env.VITE_MOCK === 'false') {
+      const response = await fetch(`/api/adjust/plan/delete?planId=${planId}`, { method: 'POST' });
+      return response.json();
+    }
+    return { code: 'SUCCESS', sucMsg: '删除成功' };
+  },
+  cancelPlan: async (planId: string) => {
+    if (import.meta.env.VITE_MOCK === 'false') {
+      const response = await fetch(`/api/adjust/plan/cancel?planId=${planId}`, { method: 'POST' });
+      return response.json();
+    }
+    return { code: 'SUCCESS', sucMsg: '作废成功' };
+  },
+  copyPlan: async (planId: string) => {
+    if (import.meta.env.VITE_MOCK === 'false') {
+      const response = await fetch(`/api/adjust/plan/copy?planId=${planId}`, { method: 'POST' });
+      return response.json();
+    }
+    return { code: 'SUCCESS', sucMsg: '复制成功' };
   }
 };

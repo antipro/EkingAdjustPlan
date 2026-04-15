@@ -121,11 +121,103 @@ const PlanList: React.FC<PlanListProps> = ({
   };
 
   const handleModalOk = async (values: any) => {
-    console.log('Plan Modal Values:', values);
-    // In a real app, call planService.createPlan or updatePlan
-    message.success(`${modalMode === 'create' ? '新建' : '修改'}成功`);
-    setModalVisible(false);
-    fetchPlans(pagination.pageNum);
+    setLoading(true);
+    try {
+      const payload = {
+        ...values,
+        beginDatetime: values.beginDatetime.format('YYYY-MM-DD HH:mm:ss'),
+        planType: planType,
+        id: editingPlan?.id,
+      };
+      
+      const response = await planService.savePlan(payload);
+      if (response.code === 'SUCCESS') {
+        message.success(`${modalMode === 'create' ? '新建' : '修改'}成功`);
+        setModalVisible(false);
+        fetchPlans(pagination.pageNum);
+      } else {
+        message.error(response.sucMsg || '保存失败');
+      }
+    } catch (error) {
+      message.error('操作失败');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmit = async (plan: PlanInfo) => {
+    setLoading(true);
+    try {
+      const res = await planService.submitPlan(plan.id);
+      if (res.code === 'SUCCESS') {
+        message.success('提交成功');
+        fetchPlans(pagination.pageNum);
+        onSubmit?.(plan);
+      } else {
+        message.error(res.sucMsg || '提交失败');
+      }
+    } catch (e) {
+      message.error('提交失败');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleWithdraw = async (plan: PlanInfo) => {
+    setLoading(true);
+    try {
+      const res = await planService.withdrawPlan(plan.id);
+      if (res.code === 'SUCCESS') {
+        message.success('撤回成功');
+        fetchPlans(pagination.pageNum);
+      } else {
+        message.error(res.sucMsg || '撤回失败');
+      }
+    } catch (e) {
+      message.error('撤回失败');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCancel = async (plan: PlanInfo) => {
+    AntdModal.confirm({
+      title: '确认作废',
+      content: `确定要作废计划 "${plan.planName}" 吗？`,
+      onOk: async () => {
+        setLoading(true);
+        try {
+          const res = await planService.cancelPlan(plan.id);
+          if (res.code === 'SUCCESS') {
+            message.success('作废成功');
+            fetchPlans(pagination.pageNum);
+          } else {
+            message.error(res.sucMsg || '作废失败');
+          }
+        } catch (e) {
+          message.error('作废失败');
+        } finally {
+          setLoading(false);
+        }
+      }
+    });
+  };
+
+  const handleCopy = async (plan: PlanInfo) => {
+    setLoading(true);
+    try {
+      const res = await planService.copyPlan(plan.id);
+      if (res.code === 'SUCCESS') {
+        message.success('复制成功');
+        fetchPlans(1);
+      } else {
+        message.error(res.sucMsg || '复制失败');
+      }
+    } catch (e) {
+      message.error('复制失败');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleDelete = (plan: PlanInfo) => {
@@ -135,10 +227,21 @@ const PlanList: React.FC<PlanListProps> = ({
       okText: '确定',
       cancelText: '取消',
       onOk: async () => {
-        // In a real app, call planService.deletePlan
-        message.success('删除成功');
-        fetchPlans(pagination.pageNum);
-        onDelete?.(plan);
+        setLoading(true);
+        try {
+          const res = await planService.deletePlan(plan.id);
+          if (res.code === 'SUCCESS') {
+            message.success('删除成功');
+            fetchPlans(pagination.pageNum);
+            onDelete?.(plan);
+          } else {
+            message.error(res.sucMsg || '删除失败');
+          }
+        } catch (e) {
+          message.error('删除失败');
+        } finally {
+          setLoading(false);
+        }
       }
     });
   };
@@ -226,12 +329,28 @@ const PlanList: React.FC<PlanListProps> = ({
               <Text style={{ fontSize: 12 }}>{plan.orgNames}</Text>
             </div>
             
-            {plan.status === '0' && selectedId === plan.id && (
+            {selectedId === plan.id && (
               <div style={{ textAlign: 'right' }}>
                 <Space>
-                  <Button size="small" onClick={(e) => { e.stopPropagation(); onSubmit?.(plan); }}>提交</Button>
-                  <Button size="small" onClick={(e) => { e.stopPropagation(); handleEdit(plan); }}>修改</Button>
-                  <Button size="small" danger onClick={(e) => { e.stopPropagation(); handleDelete(plan); }}>删除</Button>
+                  {plan.status === '0' && (
+                    <>
+                      <Button size="small" onClick={(e) => { e.stopPropagation(); handleSubmit(plan); }}>提交</Button>
+                      <Button size="small" onClick={(e) => { e.stopPropagation(); handleEdit(plan); }}>修改</Button>
+                      <Button size="small" danger onClick={(e) => { e.stopPropagation(); handleDelete(plan); }}>删除</Button>
+                    </>
+                  )}
+                  {plan.status === '1' && (
+                    <>
+                      <Button size="small" onClick={(e) => { e.stopPropagation(); handleWithdraw(plan); }}>撤回</Button>
+                      <Button size="small" onClick={(e) => { e.stopPropagation(); handleCopy(plan); }}>复制</Button>
+                    </>
+                  )}
+                  {plan.status === '2' && (
+                    <>
+                      <Button size="small" onClick={(e) => { e.stopPropagation(); handleCancel(plan); }}>作废</Button>
+                      <Button size="small" onClick={(e) => { e.stopPropagation(); handleCopy(plan); }}>复制</Button>
+                    </>
+                  )}
                 </Space>
               </div>
             )}

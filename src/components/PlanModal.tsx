@@ -43,13 +43,13 @@ const PlanModal: React.FC<PlanModalProps> = ({
         form.setFieldsValue({
           ...initialValues,
           beginDatetime: initialValues.beginDatetime ? dayjs(initialValues.beginDatetime) : null,
-          orgIds: initialValues.orgIds || ['cloud_hospital'],
+          orgIdList: initialValues.orgIdList || [],
         });
       } else {
         form.resetFields();
         form.setFieldsValue({
-          beginDatetime: dayjs('2026-01-01 00:00'),
-          orgIds: ['cloud_hospital'],
+          beginDatetime: dayjs('2026-01-01 00:00:00'),
+          orgIdList: [],
         });
       }
     }
@@ -81,7 +81,7 @@ const PlanModal: React.FC<PlanModalProps> = ({
           name="beginDatetime" 
           rules={[{ required: true, message: '请选择生效时间' }]}
         >
-          <DatePicker showTime format="YYYY-MM-DD HH:mm:mm" style={{ width: '100%' }} />
+          <DatePicker showTime format="YYYY-MM-DD HH:mm:ss" style={{ width: '100%' }} />
         </Form.Item>
 
         <Form.Item 
@@ -101,14 +101,15 @@ const PlanModal: React.FC<PlanModalProps> = ({
 
         <Form.Item 
           label="适用机构" 
-          name="orgIds"
+          name="orgIdList"
         >
           <Select 
             mode="multiple" 
             placeholder="请选择适用机构"
             options={[
-              { value: 'cloud_hospital', label: '鑫亿云医院' },
-              { value: 'future_hospital', label: '鑫亿未来医院' },
+              { value: '711912746777575424', label: '鑫亿云医院' },
+              { value: '909521624921800704', label: '鑫亿未来医院' },
+              { value: '1037000793053462528', label: '南河镇分院' },
             ]}
           />
         </Form.Item>
