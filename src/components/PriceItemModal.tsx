@@ -50,13 +50,13 @@ const PriceItemModal: React.FC<PriceItemModalProps> = ({ visible, item, categori
           statisType: detail.statisTypeName || '诊察费',
           pyCode: detail.pyCode || '',
           nationChargeItemCode: item.nationChargeItemCode || detail.nationChargeItemCode,
-          natName: item.natName || detail.natName,
+          nationChargeItemName: item.nationChargeItemName || detail.nationChargeItemName,
           remarks: item.remarks || detail.remarks,
           alias: detail.alias,
           outFront: detail.outFront,
           accLarge: detail.accLarge,
           accSmall: detail.accSmall,
-          provCode: detail.provCode,
+          sybChargeItemCode: detail.sybChargeItemCode,
           insLimit: detail.insLimit,
         });
       } else {
@@ -181,7 +181,7 @@ const PriceItemModal: React.FC<PriceItemModalProps> = ({ visible, item, categori
             </Form.Item>
           </Col>
           <Col span={12}>
-            <Form.Item label="国家收费项目名称" name="natName">
+            <Form.Item label="国家收费项目名称" name="nationChargeItemName">
               <Input />
             </Form.Item>
           </Col>
@@ -236,7 +236,7 @@ const PriceItemModal: React.FC<PriceItemModalProps> = ({ visible, item, categori
 
         <Row gutter={16}>
           <Col span={24}>
-            <Form.Item label="原省医保编码" name="provCode">
+            <Form.Item label="原省医保编码" name="sybChargeItemCode">
               <Input />
             </Form.Item>
           </Col>
