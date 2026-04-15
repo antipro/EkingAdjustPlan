@@ -55,6 +55,13 @@ const PriceListAdjustment: React.FC = () => {
   const [selectedPlan, setSelectedPlan] = useState<any>(null);
   const [activeTab, setActiveTab] = useState('1');
   const [categories, setCategories] = useState<DictOption[]>([]);
+  const [outRcptDict, setOutRcptDict] = useState<DictOption[]>([]);
+  const [inRcptDict, setInRcptDict] = useState<DictOption[]>([]);
+  const [mrFeeDict, setMrFeeDict] = useState<DictOption[]>([]);
+  const [statisDict, setStatisDict] = useState<DictOption[]>([]);
+  const [outMrFeeDict, setOutMrFeeDict] = useState<DictOption[]>([]);
+  const [accLargeDict, setAccLargeDict] = useState<DictOption[]>([]);
+  const [accSmallDict, setAccSmallDict] = useState<DictOption[]>([]);
   const [items, setItems] = useState<PriceItem[]>([]);
   const [linkedItems, setLinkedItems] = useState<LinkedClinicalItem[]>([]);
   const [loading, setLoading] = useState(false);
@@ -108,11 +115,32 @@ const PriceListAdjustment: React.FC = () => {
   };
 
   useEffect(() => {
-    dictService.getItemTypeCodes().then(res => {
-      if (res.code === 'SUCCESS') {
-        setCategories(res.data.dataInfo);
+    // Fetch all required dictionaries
+    const fetchDicts = async () => {
+      const dictConfigs = [
+        { type: 'DOMBILL_BILL_CLASS_DICT', setter: setCategories },
+        { type: 'OUT_RECEIPT_CLASS', setter: setOutRcptDict },
+        { type: 'RCPT_CLASS_FOR_IN', setter: setInRcptDict },
+        { type: 'MR_FEE_CLASS', setter: setMrFeeDict },
+        { type: 'STATISTICS_CLASS', setter: setStatisDict },
+        { type: 'OUT_MR_FEE_CLASS', setter: setOutMrFeeDict },
+        { type: 'ACCT_CLASS', setter: setAccLargeDict },
+        { type: 'ACCT_SUB_CLASS', setter: setAccSmallDict },
+      ];
+
+      for (const config of dictConfigs) {
+        try {
+          const res = await dictService.getDict(config.type);
+          if (res.code === 'SUCCESS') {
+            config.setter(res.data.dataInfo);
+          }
+        } catch (error) {
+          console.error(`Failed to fetch dict ${config.type}:`, error);
+        }
       }
-    });
+    };
+
+    fetchDicts();
   }, []);
 
   useEffect(() => {
@@ -656,6 +684,13 @@ const PriceListAdjustment: React.FC = () => {
         visible={modalVisible} 
         item={editingPriceItem}
         categories={categories}
+        outRcptDict={outRcptDict}
+        inRcptDict={inRcptDict}
+        mrFeeDict={mrFeeDict}
+        statisDict={statisDict}
+        outMrFeeDict={outMrFeeDict}
+        accLargeDict={accLargeDict}
+        accSmallDict={accSmallDict}
         onCancel={() => {
           setModalVisible(false);
           setEditingPriceItem(null);

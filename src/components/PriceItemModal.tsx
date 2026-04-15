@@ -27,11 +27,31 @@ interface PriceItemModalProps {
   visible: boolean;
   item?: PriceItem | null;
   categories?: any[];
+  outRcptDict?: any[];
+  inRcptDict?: any[];
+  mrFeeDict?: any[];
+  statisDict?: any[];
+  outMrFeeDict?: any[];
+  accLargeDict?: any[];
+  accSmallDict?: any[];
   onCancel: () => void;
   onOk: (values: any) => void;
 }
 
-const PriceItemModal: React.FC<PriceItemModalProps> = ({ visible, item, categories = [], onCancel, onOk }) => {
+const PriceItemModal: React.FC<PriceItemModalProps> = ({ 
+  visible, 
+  item, 
+  categories = [], 
+  outRcptDict = [],
+  inRcptDict = [],
+  mrFeeDict = [],
+  statisDict = [],
+  outMrFeeDict = [],
+  accLargeDict = [],
+  accSmallDict = [],
+  onCancel, 
+  onOk 
+}) => {
   const [form] = Form.useForm();
   const [priceList, setPriceList] = React.useState<any[]>([]);
 
@@ -156,12 +176,12 @@ const PriceItemModal: React.FC<PriceItemModalProps> = ({ visible, item, categori
         <Row gutter={16}>
           <Col span={12}>
             <Form.Item label="门诊收据类别" name="outRcpt" rules={[{ required: true }]}>
-              <Select options={[{ value: '诊察费', label: '诊察费' }]} />
+              <Select options={outRcptDict.length > 0 ? outRcptDict : [{ value: '诊察费', label: '诊察费' }]} />
             </Form.Item>
           </Col>
           <Col span={12}>
             <Form.Item label="住院收据类别" name="inRcpt" rules={[{ required: true }]}>
-              <Select options={[{ value: '诊察费', label: '诊察费' }]} />
+              <Select options={inRcptDict.length > 0 ? inRcptDict : [{ value: '诊察费', label: '诊察费' }]} />
             </Form.Item>
           </Col>
         </Row>
@@ -182,12 +202,12 @@ const PriceItemModal: React.FC<PriceItemModalProps> = ({ visible, item, categori
         <Row gutter={16}>
           <Col span={12}>
             <Form.Item label="病案首页类别" name="recordFront" rules={[{ required: true }]}>
-              <Select options={[{ value: '其他费', label: '其他费' }]} />
+              <Select options={mrFeeDict.length > 0 ? mrFeeDict : [{ value: '其他费', label: '其他费' }]} />
             </Form.Item>
           </Col>
           <Col span={12}>
             <Form.Item label="统计类别" name="statisType" rules={[{ required: true }]}>
-              <Select options={[{ value: '诊察费', label: '诊察费' }]} />
+              <Select options={statisDict.length > 0 ? statisDict : [{ value: '诊察费', label: '诊察费' }]} />
             </Form.Item>
           </Col>
         </Row>
@@ -200,7 +220,7 @@ const PriceItemModal: React.FC<PriceItemModalProps> = ({ visible, item, categori
           </Col>
           <Col span={12}>
             <Form.Item label="门诊首页费用类别" name="outFront">
-              <Select placeholder="请选择类别" />
+              <Select options={outMrFeeDict} placeholder="请选择类别" />
             </Form.Item>
           </Col>
         </Row>
@@ -208,12 +228,12 @@ const PriceItemModal: React.FC<PriceItemModalProps> = ({ visible, item, categori
         <Row gutter={16}>
           <Col span={12}>
             <Form.Item label="会计科目大类" name="accLarge">
-              <Select placeholder="请选择类别" />
+              <Select options={accLargeDict} placeholder="请选择类别" />
             </Form.Item>
           </Col>
           <Col span={12}>
             <Form.Item label="会计科目小类" name="accSmall">
-              <Select placeholder="请选择类别" />
+              <Select options={accSmallDict} placeholder="请选择类别" />
             </Form.Item>
           </Col>
         </Row>
