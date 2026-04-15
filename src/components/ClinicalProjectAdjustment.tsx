@@ -13,6 +13,7 @@ import {
   InfoCircleOutlined,
 } from '@ant-design/icons';
 import { clinicalProjectService, ClinicalItem } from '../services/clinicalProjectService';
+import { dictService, DictOption } from '../services/dictService';
 import PlanList from './PlanList';
 import ClinicalItemModal from './ClinicalItemModal';
 import AdjustLinkedPriceItemsModal from './AdjustLinkedPriceItemsModal';
@@ -47,6 +48,7 @@ const { Title, Text } = Typography;
 const ClinicalProjectAdjustment: React.FC = () => {
   const [selectedPlan, setSelectedPlan] = useState<any>(null);
   const [activeTab, setActiveTab] = useState('1');
+  const [categories, setCategories] = useState<DictOption[]>([]);
   const [items, setItems] = useState<ClinicalItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [total, setTotal] = useState(0);
@@ -89,6 +91,14 @@ const ClinicalProjectAdjustment: React.FC = () => {
     }
     setLoading(false);
   };
+
+  useEffect(() => {
+    dictService.getItemTypeCodes().then(res => {
+      if (res.code === 'SUCCESS') {
+        setCategories(res.data.dataInfo);
+      }
+    });
+  }, []);
 
   useEffect(() => {
     fetchItems();
@@ -334,7 +344,10 @@ const ClinicalProjectAdjustment: React.FC = () => {
                     <Select 
                       defaultValue="all" 
                       style={{ width: '100%' }}
-                      options={[{ value: 'all', label: '全部' }]}
+                      options={[
+                        { value: 'all', label: '全部' },
+                        ...categories
+                      ]}
                     />
                   </div>
                 </Col>
@@ -389,7 +402,10 @@ const ClinicalProjectAdjustment: React.FC = () => {
                     <Select 
                       defaultValue="all" 
                       style={{ width: '100%' }}
-                      options={[{ value: 'all', label: '全部' }]}
+                      options={[
+                        { value: 'all', label: '全部' },
+                        ...categories
+                      ]}
                     />
                   </div>
                 </Col>

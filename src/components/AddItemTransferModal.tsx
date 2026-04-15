@@ -7,6 +7,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import * as antd from 'antd';
 import { SearchOutlined, LeftOutlined, RightOutlined } from '@ant-design/icons';
 import { itemDictService, ItemDictEntry } from '../services/itemDictService';
+import { dictService, DictOption } from '../services/dictService';
 
 const { Modal, Table, Row, Col, Input, Select, Button, Space, Typography } = antd;
 const { Text } = Typography;
@@ -38,6 +39,7 @@ const AddItemTransferModal: React.FC<AddItemTransferModalProps> = ({
   const [rightSearch, setRightSearch] = useState('');
   const [rightCategory, setRightCategory] = useState('');
   const [rightLoading, setRightLoading] = useState(false);
+  const [categories, setCategories] = useState<DictOption[]>([]);
   const [rightPagination, setRightPagination] = useState({
     current: 1,
     pageSize: 20,
@@ -73,6 +75,13 @@ const AddItemTransferModal: React.FC<AddItemTransferModalProps> = ({
       setSelectedItems([]);
       setLeftSelectedRowKeys([]);
       setRightSelectedRowKeys([]);
+      
+      // Fetch categories
+      dictService.getItemTypeCodes().then(res => {
+        if (res.code === 'SUCCESS') {
+          setCategories(res.data.dataInfo);
+        }
+      });
     }
   }, [visible, fetchAlternativeItems]);
 
@@ -173,8 +182,7 @@ const AddItemTransferModal: React.FC<AddItemTransferModalProps> = ({
                   onChange={setLeftCategory}
                   options={[
                     { value: '', label: '全部' },
-                    { value: 'C', label: '检查' },
-                    { value: 'L', label: '检验' },
+                    ...categories
                   ]}
                 />
               </Col>
@@ -240,8 +248,7 @@ const AddItemTransferModal: React.FC<AddItemTransferModalProps> = ({
                   onChange={setRightCategory}
                   options={[
                     { value: '', label: '全部' },
-                    { value: 'C', label: '检查' },
-                    { value: 'L', label: '检验' },
+                    ...categories
                   ]}
                 />
               </Col>

@@ -12,6 +12,7 @@ import {
   DownOutlined,
 } from '@ant-design/icons';
 import { priceListService, PriceItem, LinkedClinicalItem } from '../services/priceListService';
+import { dictService, DictOption } from '../services/dictService';
 import PlanList from './PlanList';
 import PriceItemModal from './PriceItemModal';
 import ReplacementItemModal from './ReplacementItemModal';
@@ -53,6 +54,7 @@ const { Title, Text } = Typography;
 const PriceListAdjustment: React.FC = () => {
   const [selectedPlan, setSelectedPlan] = useState<any>(null);
   const [activeTab, setActiveTab] = useState('1');
+  const [categories, setCategories] = useState<DictOption[]>([]);
   const [items, setItems] = useState<PriceItem[]>([]);
   const [linkedItems, setLinkedItems] = useState<LinkedClinicalItem[]>([]);
   const [loading, setLoading] = useState(false);
@@ -103,6 +105,14 @@ const PriceListAdjustment: React.FC = () => {
     }
     setLoading(false);
   };
+
+  useEffect(() => {
+    dictService.getItemTypeCodes().then(res => {
+      if (res.code === 'SUCCESS') {
+        setCategories(res.data.dataInfo);
+      }
+    });
+  }, []);
 
   useEffect(() => {
     fetchItems();
@@ -398,7 +408,10 @@ const PriceListAdjustment: React.FC = () => {
                     <Select 
                       defaultValue="all" 
                       style={{ width: '100%' }}
-                      options={[{ value: 'all', label: '全部' }]}
+                      options={[
+                        { value: 'all', label: '全部' },
+                        ...categories
+                      ]}
                     />
                   </div>
                 </Col>
@@ -447,7 +460,10 @@ const PriceListAdjustment: React.FC = () => {
                     <Select 
                       defaultValue="all" 
                       style={{ width: '100%' }}
-                      options={[{ value: 'all', label: '全部' }]}
+                      options={[
+                        { value: 'all', label: '全部' },
+                        ...categories
+                      ]}
                     />
                   </div>
                 </Col>
@@ -504,7 +520,10 @@ const PriceListAdjustment: React.FC = () => {
                     <Select 
                       defaultValue="all" 
                       style={{ width: '100%' }}
-                      options={[{ value: 'all', label: '全部' }]}
+                      options={[
+                        { value: 'all', label: '全部' },
+                        ...categories
+                      ]}
                     />
                   </div>
                 </Col>
