@@ -22,6 +22,7 @@ import {
 
 import PriceListAdjustment from './components/PriceListAdjustment';
 import ClinicalProjectAdjustment from './components/ClinicalProjectAdjustment';
+import ClinicalExtensionAdjustment from './components/ClinicalExtensionAdjustment';
 import ClinicalProjectMaintenance from './components/ClinicalProjectMaintenance';
 import ClinicalAdjustmentLog from './components/ClinicalAdjustmentLog';
 
@@ -47,6 +48,8 @@ export default function App() {
         return <PriceListAdjustment />;
       case '3':
         return <ClinicalProjectAdjustment />;
+      case '6':
+        return <ClinicalExtensionAdjustment />;
       case '4':
         return <ClinicalProjectMaintenance />;
       case '5':
@@ -106,6 +109,7 @@ export default function App() {
               items={[
                 { key: '2', icon: <FileTextOutlined />, label: '价表项目调整计划' },
                 { key: '3', icon: <DesktopOutlined />, label: '临床项目调整计划' },
+                { key: '6', icon: <DesktopOutlined />, label: '临床拓展项目调整计划' },
                 { key: '4', icon: <SettingOutlined />, label: '临床项目综合基础维护' },
                 { key: '5', icon: <HistoryOutlined />, label: '临床价表调整日志' },
               ]}

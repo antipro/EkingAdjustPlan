@@ -68,6 +68,18 @@ const mockPlans: PlanInfo[] = [
     policy: "年度维护规程",
     changeSummary: "启用10；调整20；停用5",
     orgNames: "智慧云医院",
+  },
+  {
+    id: "1241075063734665219",
+    planName: "2026年临床拓展项目试点计划",
+    planType: "400",
+    planTypeName: "临床拓展",
+    status: "0",
+    statusName: "草稿",
+    beginDatetime: "2026-06-01 00:00:00",
+    policy: "临床拓展项目管理细则[2026]",
+    changeSummary: "启用2；调整0；停用0",
+    orgNames: "智慧云医院",
   }
 ];
 
