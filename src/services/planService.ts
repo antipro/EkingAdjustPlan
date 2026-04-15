@@ -91,7 +91,7 @@ export const planService = {
         pageSize: params.pageSize.toString(),
         ...(params.planType && { planType: params.planType })
       });
-      const response = await fetch(`/adjust/plan/page?${query}`);
+      const response = await fetch(`/api/adjust/plan/page?${query}`);
       return response.json();
     }
 
