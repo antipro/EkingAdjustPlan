@@ -33,11 +33,13 @@ interface PriceItemModalProps {
 
 const PriceItemModal: React.FC<PriceItemModalProps> = ({ visible, item, categories = [], onCancel, onOk }) => {
   const [form] = Form.useForm();
+  const [priceList, setPriceList] = React.useState<any[]>([]);
 
   React.useEffect(() => {
     if (visible) {
       if (item) {
         const detail = item.detail || {};
+        setPriceList(detail.priceList || []);
         form.setFieldsValue({
           category: item.category || detail.itemClassName || '其它',
           itemCode: item.code || item.itemCode || detail.itemCode,
@@ -66,25 +68,15 @@ const PriceItemModal: React.FC<PriceItemModalProps> = ({ visible, item, categori
   }, [visible, item, form]);
 
   const priceColumns = [
-    { title: '省', dataIndex: 'province', key: 'province' },
+    { title: '省', dataIndex: 'provinceName', key: 'provinceName' },
     { title: '物价编码', dataIndex: 'priceCode', key: 'priceCode' },
-    { title: '物价等级', dataIndex: 'priceLevel', key: 'priceLevel' },
-    { title: '价格', dataIndex: 'price', key: 'price' },
+    { title: '物价等级', dataIndex: 'priceLevelCode', key: 'priceLevelCode' },
+    { title: '价格', dataIndex: 'retaBasicPrice', key: 'retaBasicPrice' },
     { 
       title: '操作', 
       key: 'action',
       render: () => <Checkbox>禁用</Checkbox>
     },
-  ];
-
-  const mockPriceData = [
-    {
-      key: '1',
-      province: '江苏省',
-      priceCode: '20251121002',
-      priceLevel: '三级',
-      price: '50',
-    }
   ];
 
   return (
@@ -258,7 +250,8 @@ const PriceItemModal: React.FC<PriceItemModalProps> = ({ visible, item, categori
 
         <Table 
           columns={priceColumns} 
-          dataSource={mockPriceData} 
+          dataSource={priceList} 
+          rowKey="priceLevelUniqueCode"
           pagination={false} 
           size="small" 
           bordered 
