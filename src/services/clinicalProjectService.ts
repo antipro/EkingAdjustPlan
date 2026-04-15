@@ -266,13 +266,18 @@ export const clinicalProjectService = {
     }
     return clinicalPlanList;
   },
-  getItems: async (tab: string) => {
+  getItems: async (params: { planId: string; queryString: string; adjustTypes: string[]; pageNum: number; pageSize: number }) => {
     if (import.meta.env.VITE_MOCK === 'false') {
-      const response = await fetch(`/adjust/clinical-items?tab=${tab}`);
+      const response = await fetch('/api/adjust/clinic/detail', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(params),
+      });
       return response.json();
     }
-    if (tab === '1') return clinicalTableData;
-    if (tab === '2') return adjustClinicalTableData;
+    // Mock logic based on adjustTypes
+    if (params.adjustTypes.includes('I')) return clinicalTableData;
+    if (params.adjustTypes.includes('U')) return adjustClinicalTableData;
     return [];
   },
   deleteItems: async (params: { planId: string; idList: string[] }): Promise<{ code: string; sucMsg: string }> => {

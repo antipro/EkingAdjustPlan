@@ -49,22 +49,53 @@ const ClinicalProjectAdjustment: React.FC = () => {
   const [activeTab, setActiveTab] = useState('1');
   const [items, setItems] = useState<ClinicalItem[]>([]);
   const [loading, setLoading] = useState(false);
+  const [total, setTotal] = useState(0);
   const [modalVisible, setModalVisible] = useState(false);
   const [adjustModalVisible, setAdjustModalVisible] = useState(false);
   const [editingItem, setEditingItem] = useState<ClinicalItem | null>(null);
 
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+  const [params, setParams] = useState({
+    pageNum: 1,
+    pageSize: 20,
+    queryString: '',
+  });
 
   const fetchItems = async () => {
+    if (!selectedPlan) return;
     setLoading(true);
-    const data = await clinicalProjectService.getItems(activeTab);
-    setItems(data);
+    
+    let adjustTypes: string[] = [];
+    if (activeTab === '1') adjustTypes = ['I', 'E'];
+    else if (activeTab === '2') adjustTypes = ['U'];
+    else if (activeTab === '3') adjustTypes = ['D'];
+
+    const result = await clinicalProjectService.getItems({
+      planId: selectedPlan.id,
+      queryString: params.queryString,
+      adjustTypes,
+      pageNum: params.pageNum,
+      pageSize: params.pageSize,
+    });
+
+    if (Array.isArray(result)) {
+      setItems(result);
+      setTotal(result.length);
+    } else if (result?.code === 'SUCCESS') {
+      setItems(result.data.dataInfo.data);
+      setTotal(result.data.dataInfo.totalNum);
+    }
     setLoading(false);
   };
 
   useEffect(() => {
     fetchItems();
-  }, [activeTab]);
+  }, [activeTab, selectedPlan, params.pageNum, params.pageSize]);
+
+  const handleSearch = () => {
+    setParams(prev => ({ ...prev, pageNum: 1 }));
+    fetchItems();
+  };
 
   const handleBatchDelete = async () => {
     if (selectedRowKeys.length === 0) {
@@ -285,7 +316,12 @@ const ClinicalProjectAdjustment: React.FC = () => {
                 <Col span={6}>
                   <div style={{ display: 'flex', alignItems: 'center' }}>
                     <span style={{ whiteSpace: 'nowrap', marginRight: 8 }}>临床项目:</span>
-                    <Input placeholder="项目名称/项目代码" />
+                    <Input 
+                      placeholder="项目名称/项目代码" 
+                      value={params.queryString}
+                      onChange={(e) => setParams(prev => ({ ...prev, queryString: e.target.value }))}
+                      onPressEnter={handleSearch}
+                    />
                   </div>
                 </Col>
                 <Col span={4}>
@@ -303,7 +339,7 @@ const ClinicalProjectAdjustment: React.FC = () => {
                 <Col span={4} style={{ textAlign: 'right' }}>
                   <Space>
                     <Checkbox>无变动</Checkbox>
-                    <Button type="primary" ghost icon={<SearchOutlined />}>查询</Button>
+                    <Button type="primary" ghost icon={<SearchOutlined />} onClick={handleSearch}>查询</Button>
                   </Space>
                 </Col>
               </Row>
@@ -335,7 +371,12 @@ const ClinicalProjectAdjustment: React.FC = () => {
                 <Col span={6}>
                   <div style={{ display: 'flex', alignItems: 'center' }}>
                     <span style={{ whiteSpace: 'nowrap', marginRight: 8 }}>临床项目:</span>
-                    <Input placeholder="项目名称/项目代码" />
+                    <Input 
+                      placeholder="项目名称/项目代码" 
+                      value={params.queryString}
+                      onChange={(e) => setParams(prev => ({ ...prev, queryString: e.target.value }))}
+                      onPressEnter={handleSearch}
+                    />
                   </div>
                 </Col>
                 <Col span={4}>
@@ -353,7 +394,7 @@ const ClinicalProjectAdjustment: React.FC = () => {
                 <Col span={4} style={{ textAlign: 'right' }}>
                   <Space>
                     <Checkbox>总价为0</Checkbox>
-                    <Button type="primary" ghost icon={<SearchOutlined />}>查询</Button>
+                    <Button type="primary" ghost icon={<SearchOutlined />} onClick={handleSearch}>查询</Button>
                   </Space>
                 </Col>
               </Row>
@@ -382,10 +423,17 @@ const ClinicalProjectAdjustment: React.FC = () => {
             columns={activeTab === '2' ? adjustColumns : columns} 
             dataSource={items} 
             loading={loading}
-            pagination={false}
+            pagination={{
+              current: params.pageNum,
+              pageSize: params.pageSize,
+              total: total,
+              showSizeChanger: true,
+              onChange: (page, size) => setParams(prev => ({ ...prev, pageNum: page, pageSize: size })),
+              showTotal: (total) => `共 ${total} 条`,
+            }}
             size="small"
             bordered
-            scroll={{ x: 1500, y: 'calc(100vh - 350px)' }}
+            scroll={{ x: 1500, y: 'calc(100vh - 400px)' }}
           />
           <div style={{ padding: '8px 16px', borderTop: '1px solid #f0f0f0', display: 'flex', alignItems: 'center' }}>
             <Text type="secondary" style={{ marginRight: 16 }}>共{items.length}条</Text>

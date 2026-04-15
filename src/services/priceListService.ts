@@ -210,14 +210,19 @@ export const priceListService = {
     }
     return planList;
   },
-  getItems: async (tab: string) => {
+  getItems: async (params: { planId: string; queryString: string; adjustTypes: string[]; pageNum: number; pageSize: number }) => {
     if (import.meta.env.VITE_MOCK === 'false') {
-      const response = await fetch(`/adjust/price-items?tab=${tab}`);
+      const response = await fetch('/api/adjust/price/detail', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(params),
+      });
       return response.json();
     }
-    if (tab === '1') return tableData;
-    if (tab === '2') return adjustTableData;
-    if (tab === '3') return deactivateTableData;
+    // Mock logic based on adjustTypes
+    if (params.adjustTypes.includes('I')) return tableData;
+    if (params.adjustTypes.includes('U')) return adjustTableData;
+    if (params.adjustTypes.includes('D')) return deactivateTableData;
     return [];
   },
   getLinkedClinicalItems: async () => {

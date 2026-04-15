@@ -55,24 +55,58 @@ const PriceListAdjustment: React.FC = () => {
   const [items, setItems] = useState<PriceItem[]>([]);
   const [linkedItems, setLinkedItems] = useState<LinkedClinicalItem[]>([]);
   const [loading, setLoading] = useState(false);
+  const [total, setTotal] = useState(0);
   const [modalVisible, setModalVisible] = useState(false);
   const [replacementModalVisible, setReplacementModalVisible] = useState(false);
   const [adjustModalVisible, setAdjustModalVisible] = useState(false);
   const [editingLinkedItem, setEditingLinkedItem] = useState<LinkedClinicalItem | null>(null);
 
+  const [params, setParams] = useState({
+    pageNum: 1,
+    pageSize: 20,
+    queryString: '',
+  });
+
+  const fetchItems = async () => {
+    if (!selectedPlan) return;
+    setLoading(true);
+    
+    let adjustTypes: string[] = [];
+    if (activeTab === '1') adjustTypes = ['I', 'E'];
+    else if (activeTab === '2') adjustTypes = ['U'];
+    else if (activeTab === '3') adjustTypes = ['D'];
+
+    const result = await priceListService.getItems({
+      planId: selectedPlan.id,
+      queryString: params.queryString,
+      adjustTypes,
+      pageNum: params.pageNum,
+      pageSize: params.pageSize,
+    });
+
+    if (Array.isArray(result)) {
+      setItems(result);
+      setTotal(result.length);
+    } else if (result?.code === 'SUCCESS') {
+      setItems(result.data.dataInfo.data);
+      setTotal(result.data.dataInfo.totalNum);
+    }
+
+    if (activeTab === '3') {
+      const linkedData = await priceListService.getLinkedClinicalItems();
+      setLinkedItems(linkedData);
+    }
+    setLoading(false);
+  };
+
   useEffect(() => {
-    const fetchItems = async () => {
-      setLoading(true);
-      const data = await priceListService.getItems(activeTab);
-      setItems(data);
-      if (activeTab === '3') {
-        const linkedData = await priceListService.getLinkedClinicalItems();
-        setLinkedItems(linkedData);
-      }
-      setLoading(false);
-    };
     fetchItems();
-  }, [activeTab]);
+  }, [activeTab, selectedPlan, params.pageNum, params.pageSize]);
+
+  const handleSearch = () => {
+    setParams(prev => ({ ...prev, pageNum: 1 }));
+    fetchItems();
+  };
 
   const columns = [
     { title: '生效', dataIndex: 'active', key: 'active', width: 60 },
@@ -339,7 +373,12 @@ const PriceListAdjustment: React.FC = () => {
                 <Col span={8}>
                   <div style={{ display: 'flex', alignItems: 'center' }}>
                     <span style={{ whiteSpace: 'nowrap', marginRight: 8 }}>价表项目:</span>
-                    <Input placeholder="项目名称/代码/收费项目编码" />
+                    <Input 
+                      placeholder="项目名称/代码/收费项目编码" 
+                      value={params.queryString}
+                      onChange={(e) => setParams(prev => ({ ...prev, queryString: e.target.value }))}
+                      onPressEnter={handleSearch}
+                    />
                   </div>
                 </Col>
                 <Col span={8}>
@@ -349,7 +388,7 @@ const PriceListAdjustment: React.FC = () => {
                   </Space>
                 </Col>
                 <Col span={4} style={{ textAlign: 'right' }}>
-                  <Button type="primary" ghost icon={<SearchOutlined />}>查询</Button>
+                  <Button type="primary" ghost icon={<SearchOutlined />} onClick={handleSearch}>查询</Button>
                 </Col>
               </Row>
               <div style={{ marginTop: 12, display: 'flex', justifyContent: 'space-between' }}>
@@ -380,7 +419,12 @@ const PriceListAdjustment: React.FC = () => {
                 <Col span={8}>
                   <div style={{ display: 'flex', alignItems: 'center' }}>
                     <span style={{ whiteSpace: 'nowrap', marginRight: 8 }}>价表项目:</span>
-                    <Input placeholder="项目名称/代码/收费项目编码" />
+                    <Input 
+                      placeholder="项目名称/代码/收费项目编码" 
+                      value={params.queryString}
+                      onChange={(e) => setParams(prev => ({ ...prev, queryString: e.target.value }))}
+                      onPressEnter={handleSearch}
+                    />
                   </div>
                 </Col>
                 <Col span={4}>
@@ -397,7 +441,7 @@ const PriceListAdjustment: React.FC = () => {
                   </div>
                 </Col>
                 <Col span={8} style={{ textAlign: 'right' }}>
-                  <Button type="primary" ghost icon={<SearchOutlined />}>查询</Button>
+                  <Button type="primary" ghost icon={<SearchOutlined />} onClick={handleSearch}>查询</Button>
                 </Col>
               </Row>
               <div style={{ marginTop: 12, display: 'flex', justifyContent: 'space-between' }}>
@@ -429,7 +473,12 @@ const PriceListAdjustment: React.FC = () => {
                 <Col span={6}>
                   <div style={{ display: 'flex', alignItems: 'center' }}>
                     <span style={{ whiteSpace: 'nowrap', marginRight: 8 }}>价表项目:</span>
-                    <Input placeholder="项目名称/代码/收费项目编码" />
+                    <Input 
+                      placeholder="项目名称/代码/收费项目编码" 
+                      value={params.queryString}
+                      onChange={(e) => setParams(prev => ({ ...prev, queryString: e.target.value }))}
+                      onPressEnter={handleSearch}
+                    />
                   </div>
                 </Col>
                 <Col span={4}>
@@ -449,7 +498,7 @@ const PriceListAdjustment: React.FC = () => {
                   </div>
                 </Col>
                 <Col span={4} style={{ textAlign: 'right' }}>
-                  <Button type="primary" ghost icon={<SearchOutlined />}>查询</Button>
+                  <Button type="primary" ghost icon={<SearchOutlined />} onClick={handleSearch}>查询</Button>
                 </Col>
               </Row>
               <div style={{ marginTop: 12, display: 'flex', justifyContent: 'space-between' }}>
@@ -476,10 +525,17 @@ const PriceListAdjustment: React.FC = () => {
             columns={activeTab === '2' ? adjustColumns : activeTab === '3' ? deactivateColumns : columns} 
             dataSource={items} 
             loading={loading}
-            pagination={false}
+            pagination={{
+              current: params.pageNum,
+              pageSize: params.pageSize,
+              total: total,
+              showSizeChanger: true,
+              onChange: (page, size) => setParams(prev => ({ ...prev, pageNum: page, pageSize: size })),
+              showTotal: (total) => `共 ${total} 条`,
+            }}
             size="small"
             bordered
-            scroll={{ x: 1500, y: activeTab === '3' ? 300 : 'calc(100vh - 350px)' }}
+            scroll={{ x: 1500, y: activeTab === '3' ? 300 : 'calc(100vh - 400px)' }}
           />
           {activeTab === '3' && (
             <div style={{ marginTop: 20, border: '1px solid #1890ff', borderRadius: 4 }}>
