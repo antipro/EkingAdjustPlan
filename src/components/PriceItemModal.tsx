@@ -34,6 +34,8 @@ interface PriceItemModalProps {
   outMrFeeDict?: any[];
   accLargeDict?: any[];
   accSmallDict?: any[];
+  unitDict?: any[];
+  provinceDict?: any[];
   onCancel: () => void;
   onOk: (values: any) => void;
 }
@@ -49,6 +51,8 @@ const PriceItemModal: React.FC<PriceItemModalProps> = ({
   outMrFeeDict = [],
   accLargeDict = [],
   accSmallDict = [],
+  unitDict = [],
+  provinceDict = [],
   onCancel, 
   onOk 
 }) => {
@@ -64,7 +68,7 @@ const PriceItemModal: React.FC<PriceItemModalProps> = ({
           category: item.category || detail.itemClassName || '其它',
           itemCode: item.code || item.itemCode || detail.itemCode,
           name: item.name || detail.itemName,
-          specs: item.specs || detail.spec || '/',
+          spec: item.spec || detail.spec || '/',
           unit: item.unit || detail.unit || '次',
           outRcpt: detail.outRcptName || '诊察费',
           inRcpt: detail.inRcptName || '诊察费',
@@ -87,15 +91,112 @@ const PriceItemModal: React.FC<PriceItemModalProps> = ({
     }
   }, [visible, item, form]);
 
+  const handlePriceListChange = (index: number, field: string, value: any) => {
+    const newList = [...priceList];
+    newList[index] = { ...newList[index], [field]: value };
+    
+    // If province changes, update provinceName
+    if (field === 'province') {
+      const province = provinceDict.find(p => p.value === value);
+      if (province) {
+        newList[index].provinceName = province.label;
+      }
+    }
+    
+    setPriceList(newList);
+  };
+
+  const handleAddPriceRow = () => {
+    const newRow = {
+      priceLevelUniqueCode: `new_${Date.now()}`,
+      province: provinceDict[0]?.value || '',
+      provinceName: provinceDict[0]?.label || '',
+      priceCode: '',
+      priceLevelCode: '1',
+      retaBasicPrice: 0,
+    };
+    setPriceList([...priceList, newRow]);
+  };
+
   const priceColumns = [
-    { title: '省', dataIndex: 'provinceName', key: 'provinceName' },
-    { title: '物价编码', dataIndex: 'priceCode', key: 'priceCode' },
-    { title: '物价等级', dataIndex: 'priceLevelCode', key: 'priceLevelCode' },
-    { title: '价格', dataIndex: 'retaBasicPrice', key: 'retaBasicPrice' },
+    { 
+      title: '省', 
+      dataIndex: 'province', 
+      key: 'province',
+      render: (text: string, record: any, index: number) => (
+        <Select 
+          showSearch
+          value={text} 
+          style={{ width: '100%' }}
+          options={provinceDict}
+          placeholder="选择省份"
+          filterOption={(input, option) =>
+            (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+          }
+          onChange={(val) => handlePriceListChange(index, 'province', val)}
+        />
+      )
+    },
+    { 
+      title: '物价编码', 
+      dataIndex: 'priceCode', 
+      key: 'priceCode',
+      render: (text: string, record: any, index: number) => (
+        <Input 
+          value={text} 
+          onChange={(e) => handlePriceListChange(index, 'priceCode', e.target.value)}
+        />
+      )
+    },
+    { 
+      title: '物价等级', 
+      dataIndex: 'priceLevelCode', 
+      key: 'priceLevelCode',
+      render: (text: string, record: any, index: number) => (
+        <Select 
+          value={text} 
+          style={{ width: '100%' }}
+          options={[
+            { label: '1 一级', value: '1' },
+            { label: '2 二级', value: '2' },
+            { label: '3 三级', value: '3' },
+          ]}
+          onChange={(val) => handlePriceListChange(index, 'priceLevelCode', val)}
+        />
+      )
+    },
+    { 
+      title: '价格', 
+      dataIndex: 'retaBasicPrice', 
+      key: 'retaBasicPrice',
+      render: (text: number, record: any, index: number) => (
+        <antd.InputNumber 
+          value={text} 
+          style={{ width: '100%' }}
+          onChange={(val) => handlePriceListChange(index, 'retaBasicPrice', val)}
+        />
+      )
+    },
     { 
       title: '操作', 
       key: 'action',
-      render: () => <Checkbox>禁用</Checkbox>
+      render: (_: any, __: any, index: number) => (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Checkbox>禁用</Checkbox>
+          <Button 
+            type="link" 
+            danger 
+            size="small" 
+            onClick={() => {
+              const newList = [...priceList];
+              newList.splice(index, 1);
+              setPriceList(newList);
+            }}
+          >
+            删除
+          </Button>
+        </div>
+      )
     },
   ];
 
@@ -113,12 +214,12 @@ const PriceItemModal: React.FC<PriceItemModalProps> = ({
       <Form
         form={form}
         layout="vertical"
-        onFinish={onOk}
+        onFinish={(values) => onOk({ ...values, priceList })}
         initialValues={{
           category: '其它',
           itemCode: 'I243019',
           name: '多学科诊疗费(每增加一个学科专家加收)',
-          specs: '/',
+          spec: '/',
           unit: '次',
           outRcpt: '诊察费',
           inRcpt: '诊察费',
@@ -162,13 +263,13 @@ const PriceItemModal: React.FC<PriceItemModalProps> = ({
 
         <Row gutter={16}>
           <Col span={12}>
-            <Form.Item label="规格" name="specs" rules={[{ required: true }]}>
+            <Form.Item label="规格" name="spec" rules={[{ required: true }]}>
               <Input />
             </Form.Item>
           </Col>
           <Col span={12}>
             <Form.Item label="单位" name="unit" rules={[{ required: true }]}>
-              <Input />
+              <Select options={unitDict.length > 0 ? unitDict : [{ value: '次', label: '次' }]} />
             </Form.Item>
           </Col>
         </Row>
@@ -277,7 +378,15 @@ const PriceItemModal: React.FC<PriceItemModalProps> = ({
           bordered 
         />
         
-        <Button icon={<PlusOutlined />} style={{ marginTop: 12 }} type="primary" ghost>添加</Button>
+        <Button 
+          icon={<PlusOutlined />} 
+          style={{ marginTop: 12 }} 
+          type="primary" 
+          ghost
+          onClick={handleAddPriceRow}
+        >
+          添加
+        </Button>
       </Form>
     </Modal>
   );

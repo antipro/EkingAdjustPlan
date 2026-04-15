@@ -62,6 +62,8 @@ const PriceListAdjustment: React.FC = () => {
   const [outMrFeeDict, setOutMrFeeDict] = useState<DictOption[]>([]);
   const [accLargeDict, setAccLargeDict] = useState<DictOption[]>([]);
   const [accSmallDict, setAccSmallDict] = useState<DictOption[]>([]);
+  const [unitDict, setUnitDict] = useState<DictOption[]>([]);
+  const [provinceDict, setProvinceDict] = useState<DictOption[]>([]);
   const [items, setItems] = useState<PriceItem[]>([]);
   const [linkedItems, setLinkedItems] = useState<LinkedClinicalItem[]>([]);
   const [loading, setLoading] = useState(false);
@@ -126,6 +128,7 @@ const PriceListAdjustment: React.FC = () => {
         { type: 'OUT_MR_FEE_CLASS', setter: setOutMrFeeDict },
         { type: 'ACCT_CLASS', setter: setAccLargeDict },
         { type: 'ACCT_SUB_CLASS', setter: setAccSmallDict },
+        { type: 'ITEM_UNIT_DICT', setter: setUnitDict },
       ];
 
       for (const config of dictConfigs) {
@@ -141,6 +144,14 @@ const PriceListAdjustment: React.FC = () => {
     };
 
     fetchDicts();
+
+    // Mock provinces for now as no specific code was provided
+    setProvinceDict([
+      { label: '江苏省', value: '320000' },
+      { label: '浙江省', value: '330000' },
+      { label: '上海市', value: '310000' },
+      { label: '安徽省', value: '340000' },
+    ]);
   }, []);
 
   useEffect(() => {
@@ -691,6 +702,8 @@ const PriceListAdjustment: React.FC = () => {
         outMrFeeDict={outMrFeeDict}
         accLargeDict={accLargeDict}
         accSmallDict={accSmallDict}
+        unitDict={unitDict}
+        provinceDict={provinceDict}
         onCancel={() => {
           setModalVisible(false);
           setEditingPriceItem(null);
