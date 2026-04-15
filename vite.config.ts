@@ -28,6 +28,15 @@ export default defineConfig(({mode}) => {
           },
           rewrite: (path) => path.replace(/^\/api/, '')
         },
+        '/app-core': {
+          target: env.VITE_API_OTHER_URL || 'http://192.168.1.231:4433/app-core',
+          changeOrigin: true,
+          headers: {
+            ACCESS_TOKEN: env.ACCESS_TOKEN || '',
+            Authorization: env.AUTHORIZATION || '',
+          },
+          rewrite: (path) => path.replace(/^\/app-core/, '')
+        },
         '/uc': {
           target: env.VITE_API_UC_URL || 'http://192.168.1.231:9446/uc',
           changeOrigin: true,

@@ -17,7 +17,7 @@ export interface DictData {
 export const dictService = {
   getItemTypeCodes: async (): Promise<ApiResponse<DictData>> => {
     if (import.meta.env.VITE_MOCK === 'false') {
-      const response = await request<DictData>('/api/app-core/cache/range-content-dict/itemTypeCode?itemTypeCode=DOMBILL_BILL_CLASS_DICT', {
+      const response = await request<DictData>('/app-core/cache/range-content-dict/itemTypeCode?itemTypeCode=DOMBILL_BILL_CLASS_DICT', {
         method: 'GET',
       });
       return response;
