@@ -3,9 +3,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import * as antd from 'antd';
 import dayjs from 'dayjs';
+import { orgService, OrgEntry } from '../services/orgService';
 
 const { 
   Modal, 
@@ -36,9 +37,24 @@ const PlanModal: React.FC<PlanModalProps> = ({
   mode 
 }) => {
   const [form] = Form.useForm();
+  const [orgs, setOrgs] = useState<OrgEntry[]>([]);
+  const [loadingOrgs, setLoadingOrgs] = useState(false);
 
   useEffect(() => {
+    const fetchOrgs = async () => {
+      setLoadingOrgs(true);
+      try {
+        const res = await orgService.getOrgList({ pageNum: 1, pageSize: 100, query: '' });
+        if (res.code === 'SUCCESS') {
+          setOrgs(res.data.dataInfo);
+        }
+      } finally {
+        setLoadingOrgs(false);
+      }
+    };
+
     if (visible) {
+      fetchOrgs();
       if (mode === 'edit' && initialValues) {
         form.setFieldsValue({
           ...initialValues,
@@ -106,11 +122,11 @@ const PlanModal: React.FC<PlanModalProps> = ({
           <Select 
             mode="multiple" 
             placeholder="请选择适用机构"
-            options={[
-              { value: '711912746777575424', label: '鑫亿云医院' },
-              { value: '909521624921800704', label: '鑫亿未来医院' },
-              { value: '1037000793053462528', label: '南河镇分院' },
-            ]}
+            loading={loadingOrgs}
+            options={orgs.map(org => ({
+              value: org.id,
+              label: org.hspName
+            }))}
           />
         </Form.Item>
 
