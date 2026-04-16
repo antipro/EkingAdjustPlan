@@ -237,20 +237,26 @@ const PriceListAdjustment: React.FC = () => {
       antd.message.warning('请先选择要移除的项目');
       return;
     }
-    const idList = selectedRowKeys.map(key => {
-      const item = items.find(i => i.id === key);
-      return item?.id || null;
-    }).filter(Boolean) as string[];
     
-    if (idList.length === 0) {
-      antd.message.error('无法获取项目ID');
-      return;
-    }
-    
+    const itemsToRemove = items.filter(item => selectedRowKeys.includes(item.key));
+    const itemsWithId = itemsToRemove.filter(item => item.id).map(item => item.id!);
+    const itemsWithoutId = itemsToRemove.filter(item => !item.id).map(item => item.key);
+
     antd.Modal.confirm({
       title: '确认移除',
       content: `确定要移除选中的 ${selectedRowKeys.length} 个项目吗？`,
-      onOk: () => handleDelete(idList),
+      onOk: async () => {
+        if (itemsWithId.length > 0) {
+          await handleDelete(itemsWithId);
+        }
+        if (itemsWithoutId.length > 0) {
+          setItems(prev => prev.filter(item => !itemsWithoutId.includes(item.key)));
+          setSelectedRowKeys(prev => prev.filter(key => !itemsWithoutId.includes(key)));
+          if (itemsWithId.length === 0) {
+            antd.message.success('移除成功');
+          }
+        }
+      },
     });
   };
 
@@ -303,15 +309,17 @@ const PriceListAdjustment: React.FC = () => {
             setModalVisible(true);
           }}>编辑</Button>
           <Button type="link" size="small" danger disabled={!isEditable} onClick={() => {
-            const id = record.id;
-            if (!id) {
-              antd.message.error('无法获取项目ID');
-              return;
-            }
             antd.Modal.confirm({
               title: '确认移除',
               content: '确定要移除该项目吗？',
-              onOk: () => handleDelete([id]),
+              onOk: () => {
+                if (record.id) {
+                  handleDelete([record.id]);
+                } else {
+                  setItems(prev => prev.filter(item => item.key !== record.key));
+                  antd.message.success('移除成功');
+                }
+              },
             });
           }}>移除</Button>
         </Space>
@@ -393,15 +401,17 @@ const PriceListAdjustment: React.FC = () => {
             setModalVisible(true);
           }}>编辑</Button>
           <Button type="link" size="small" danger disabled={!isEditable} onClick={() => {
-            const id = record.id;
-            if (!id) {
-              antd.message.error('无法获取项目ID');
-              return;
-            }
             antd.Modal.confirm({
               title: '确认移除',
               content: '确定要移除该项目吗？',
-              onOk: () => handleDelete([id]),
+              onOk: () => {
+                if (record.id) {
+                  handleDelete([record.id]);
+                } else {
+                  setItems(prev => prev.filter(item => item.key !== record.key));
+                  antd.message.success('移除成功');
+                }
+              },
             });
           }}>移除</Button>
         </Space>
@@ -439,15 +449,17 @@ const PriceListAdjustment: React.FC = () => {
         <Space>
           <Button type="link" size="small" style={{ padding: 0 }} onClick={() => setReplacementModalVisible(true)} disabled={!isEditable}>替换项</Button>
           <Button type="link" size="small" danger style={{ padding: 0 }} disabled={!isEditable} onClick={() => {
-            const id = record.id;
-            if (!id) {
-              antd.message.error('无法获取项目ID');
-              return;
-            }
             antd.Modal.confirm({
               title: '确认移除',
               content: '确定要移除该项目吗？',
-              onOk: () => handleDelete([id]),
+              onOk: () => {
+                if (record.id) {
+                  handleDelete([record.id]);
+                } else {
+                  setItems(prev => prev.filter(item => item.key !== record.key));
+                  antd.message.success('移除成功');
+                }
+              },
             });
           }}>移除</Button>
         </Space>
@@ -737,7 +749,7 @@ const PriceListAdjustment: React.FC = () => {
         </div>
         <div style={{ flex: 1, padding: 0, overflowY: 'auto' }}>
           <Table 
-            rowKey="id"
+            rowKey="key"
             rowSelection={{
               selectedRowKeys,
               onChange: (keys) => setSelectedRowKeys(keys),
@@ -896,6 +908,7 @@ const PriceListAdjustment: React.FC = () => {
       <AddItemTransferModal
         visible={transferModalVisible}
         status={transferModalStatus}
+        provinceCode={selectedPlan?.provinceCode}
         onCancel={() => setTransferModalVisible(false)}
         onSave={(selectedItems) => {
           let type = 'U';
@@ -903,7 +916,7 @@ const PriceListAdjustment: React.FC = () => {
           else if (activeTab === '3') type = 'D';
 
           const newItems: PriceItem[] = selectedItems.map(item => ({
-            key: item.id,
+            key: item.id || item.itemCode || `new_${Date.now()}_${Math.random()}`,
             name: item.itemName,
             code: item.itemCode,
             spec: item.spec,

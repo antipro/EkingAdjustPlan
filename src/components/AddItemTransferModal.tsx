@@ -18,6 +18,7 @@ interface AddItemTransferModalProps {
   onSave: (selectedItems: ItemDictEntry[]) => void;
   title?: string;
   status?: string;
+  provinceCode?: string;
 }
 
 const AddItemTransferModal: React.FC<AddItemTransferModalProps> = ({
@@ -25,7 +26,8 @@ const AddItemTransferModal: React.FC<AddItemTransferModalProps> = ({
   onCancel,
   onSave,
   title = "添加价表项目",
-  status = '0'
+  status = '0',
+  provinceCode
 }) => {
   // Left side: Selected Items (已选项目)
   const [selectedItems, setSelectedItems] = useState<ItemDictEntry[]>([]);
@@ -134,12 +136,18 @@ const AddItemTransferModal: React.FC<AddItemTransferModalProps> = ({
           try {
             const res = await itemDictService.queryDetail(item.itemCode);
             if (res.code === 'SUCCESS') {
+              const detail = res.data.dataInfo;
+              // Filter priceList by provinceCode if provided
+              if (provinceCode && detail.priceList) {
+                detail.priceList = detail.priceList.filter((p: any) => p.province === provinceCode);
+              }
+              
               // Merge the detail data into the item
               return {
                 ...item,
-                ...res.data.dataInfo,
+                ...detail,
                 // Ensure we keep the original ID if needed, or use the one from detail
-                id: res.data.dataInfo.id || item.id
+                id: detail.id || item.id
               };
             }
           } catch (e) {
