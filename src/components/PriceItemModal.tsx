@@ -71,17 +71,24 @@ const PriceItemModal: React.FC<PriceItemModalProps> = ({
           spec: detail.spec || '/',
           unit: detail.unit || '次',
           outRcpt: detail.outRcptName || '诊察费',
+          outRcptCode: detail.outRcptCode,
           inRcpt: detail.inRcptName || '诊察费',
+          inRcptCode: detail.inRcptCode,
           recordFront: detail.recordFrontName || '其他费',
+          recordFrontCode: detail.recordFrontCode,
           statisType: detail.statisTypeName || '诊察费',
+          statisTypeCode: detail.statisTypeCode,
           pyCode: detail.pyCode || '',
           nationChargeItemCode: detail.nationChargeItemCode,
           nationChargeItemName: detail.nationChargeItemName,
           remarks: detail.remarks,
           alias: detail.alias,
           outFront: detail.outFront,
+          outFrontCode: detail.outFrontCode,
           accLarge: detail.accLarge,
+          accLargeCode: detail.accLargeCode,
           accSmall: detail.accSmall,
+          accSmallCode: detail.accSmallCode,
           sybChargeItemCode: detail.sybChargeItemCode,
           insLimit: detail.insLimit,
         });
@@ -90,6 +97,56 @@ const PriceItemModal: React.FC<PriceItemModalProps> = ({
       }
     }
   }, [visible, item, form]);
+
+  const getCodeFromDict = (value: string, dict: any[]) => {
+    const found = dict.find(d => d.label === value || d.value === value);
+    return found?.value || '';
+  };
+
+  const handleOutRcptChange = (value: string) => {
+    const found = outRcptDict.find(d => d.label === value || d.value === value);
+    form.setFieldsValue({ outRcpt: found?.label || value, outRcptCode: found?.value });
+  };
+
+  const handleInRcptChange = (value: string) => {
+    const found = inRcptDict.find(d => d.label === value || d.value === value);
+    form.setFieldsValue({ inRcpt: found?.label || value, inRcptCode: found?.value });
+  };
+
+  const handleRecordFrontChange = (value: string) => {
+    const found = mrFeeDict.find(d => d.label === value || d.value === value);
+    form.setFieldsValue({ recordFront: found?.label || value, recordFrontCode: found?.value });
+  };
+
+  const handleStatisTypeChange = (value: string) => {
+    const found = statisDict.find(d => d.label === value || d.value === value);
+    form.setFieldsValue({ statisType: found?.label || value, statisTypeCode: found?.value });
+  };
+
+  const handleOutFrontChange = (value: string) => {
+    const found = outMrFeeDict.find(d => d.label === value || d.value === value);
+    form.setFieldsValue({ outFront: found?.label || value, outFrontCode: found?.value });
+  };
+
+  const handleAccLargeChange = (value: string) => {
+    const found = accLargeDict.find(d => d.label === value || d.value === value);
+    form.setFieldsValue({ accLarge: found?.label || value, accLargeCode: found?.value, accSmall: undefined, accSmallCode: undefined });
+  };
+
+  const handleAccSmallChange = (value: string) => {
+    const found = accSmallDict.find(d => d.label === value || d.value === value);
+    form.setFieldsValue({ accSmall: found?.label || value, accSmallCode: found?.value });
+  };
+
+  const handleOk = () => {
+    form.validateFields().then(values => {
+      const updatedValues = {
+        ...values,
+        priceList,
+      };
+      onOk(updatedValues);
+    });
+  };
 
   const handlePriceListChange = (index: number, field: string, value: any) => {
     const newList = [...priceList];
@@ -201,12 +258,12 @@ const PriceItemModal: React.FC<PriceItemModalProps> = ({
   ];
 
   return (
-    <Modal
-      title="价表项目"
-      open={visible}
-      onCancel={onCancel}
-      onOk={() => form.submit()}
-      width={800}
+      <Modal
+        title="价表项目"
+        open={visible}
+        onCancel={onCancel}
+        onOk={handleOk}
+        width={800}
       okText="确认"
       cancelText="取消"
       styles={{ body: { padding: '0 24px 24px' } }}
@@ -214,7 +271,6 @@ const PriceItemModal: React.FC<PriceItemModalProps> = ({
       <Form
         form={form}
         layout="vertical"
-        onFinish={(values) => onOk({ ...values, priceList })}
         initialValues={{
           category: '其它',
           itemCode: 'I243019',
@@ -228,6 +284,13 @@ const PriceItemModal: React.FC<PriceItemModalProps> = ({
           pyCode: 'DXKLFMZJYGXKZJJS',
         }}
       >
+        <Form.Item name="outRcptCode" hidden />
+        <Form.Item name="inRcptCode" hidden />
+        <Form.Item name="recordFrontCode" hidden />
+        <Form.Item name="statisTypeCode" hidden />
+        <Form.Item name="outFrontCode" hidden />
+        <Form.Item name="accLargeCode" hidden />
+        <Form.Item name="accSmallCode" hidden />
         <Divider orientation="left" plain style={{ margin: '16px 0 8px', fontSize: 12, color: '#999' }}>基本信息</Divider>
         
         <Row gutter={16}>
@@ -277,12 +340,12 @@ const PriceItemModal: React.FC<PriceItemModalProps> = ({
         <Row gutter={16}>
           <Col span={12}>
             <Form.Item label="门诊收据类别" name="outRcpt" rules={[{ required: true }]}>
-              <Select options={outRcptDict.length > 0 ? outRcptDict : [{ value: '诊察费', label: '诊察费' }]} />
+              <Select options={outRcptDict.length > 0 ? outRcptDict : [{ value: '诊察费', label: '诊察费' }]} onChange={handleOutRcptChange} />
             </Form.Item>
           </Col>
           <Col span={12}>
             <Form.Item label="住院收据类别" name="inRcpt" rules={[{ required: true }]}>
-              <Select options={inRcptDict.length > 0 ? inRcptDict : [{ value: '诊察费', label: '诊察费' }]} />
+              <Select options={inRcptDict.length > 0 ? inRcptDict : [{ value: '诊察费', label: '诊察费' }]} onChange={handleInRcptChange} />
             </Form.Item>
           </Col>
         </Row>
@@ -303,12 +366,12 @@ const PriceItemModal: React.FC<PriceItemModalProps> = ({
         <Row gutter={16}>
           <Col span={12}>
             <Form.Item label="病案首页类别" name="recordFront" rules={[{ required: true }]}>
-              <Select options={mrFeeDict.length > 0 ? mrFeeDict : [{ value: '其他费', label: '其他费' }]} />
+              <Select options={mrFeeDict.length > 0 ? mrFeeDict : [{ value: '其他费', label: '其他费' }]} onChange={handleRecordFrontChange} />
             </Form.Item>
           </Col>
           <Col span={12}>
             <Form.Item label="统计类别" name="statisType" rules={[{ required: true }]}>
-              <Select options={statisDict.length > 0 ? statisDict : [{ value: '诊察费', label: '诊察费' }]} />
+              <Select options={statisDict.length > 0 ? statisDict : [{ value: '诊察费', label: '诊察费' }]} onChange={handleStatisTypeChange} />
             </Form.Item>
           </Col>
         </Row>
@@ -321,7 +384,7 @@ const PriceItemModal: React.FC<PriceItemModalProps> = ({
           </Col>
           <Col span={12}>
             <Form.Item label="门诊首页费用类别" name="outFront">
-              <Select options={outMrFeeDict} placeholder="请选择类别" />
+              <Select options={outMrFeeDict} placeholder="请选择类别" onChange={handleOutFrontChange} />
             </Form.Item>
           </Col>
         </Row>
@@ -329,12 +392,12 @@ const PriceItemModal: React.FC<PriceItemModalProps> = ({
         <Row gutter={16}>
           <Col span={12}>
             <Form.Item label="会计科目大类" name="accLarge">
-              <Select options={accLargeDict} placeholder="请选择类别" />
+              <Select options={accLargeDict} placeholder="请选择类别" onChange={handleAccLargeChange} />
             </Form.Item>
           </Col>
           <Col span={12}>
             <Form.Item label="会计科目小类" name="accSmall">
-              <Select options={accSmallDict} placeholder="请选择类别" />
+              <Select options={accSmallDict} placeholder="请选择类别" onChange={handleAccSmallChange} />
             </Form.Item>
           </Col>
         </Row>

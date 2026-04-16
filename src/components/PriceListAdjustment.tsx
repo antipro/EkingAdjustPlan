@@ -212,10 +212,20 @@ const PriceListAdjustment: React.FC = () => {
       antd.message.warning('请先选择要移除的项目');
       return;
     }
+    const idList = selectedRowKeys.map(key => {
+      const item = items.find(i => i.id === key);
+      return item?.id || null;
+    }).filter(Boolean) as string[];
+    
+    if (idList.length === 0) {
+      antd.message.error('无法获取项目ID');
+      return;
+    }
+    
     antd.Modal.confirm({
       title: '确认移除',
       content: `确定要移除选中的 ${selectedRowKeys.length} 个项目吗？`,
-      onOk: () => handleDelete(selectedRowKeys.map(key => String(key))),
+      onOk: () => handleDelete(idList),
     });
   };
 
@@ -242,10 +252,15 @@ const PriceListAdjustment: React.FC = () => {
             setModalVisible(true);
           }}>编辑</Button>
           <Button type="link" size="small" danger disabled={!isEditable} onClick={() => {
+            const id = record.id;
+            if (!id) {
+              antd.message.error('无法获取项目ID');
+              return;
+            }
             antd.Modal.confirm({
               title: '确认移除',
               content: '确定要移除该项目吗？',
-              onOk: () => handleDelete([record.key]),
+              onOk: () => handleDelete([id]),
             });
           }}>移除</Button>
         </Space>
@@ -358,10 +373,15 @@ const PriceListAdjustment: React.FC = () => {
             setModalVisible(true);
           }}>编辑</Button>
           <Button type="link" size="small" danger disabled={!isEditable} onClick={() => {
+            const id = record.id;
+            if (!id) {
+              antd.message.error('无法获取项目ID');
+              return;
+            }
             antd.Modal.confirm({
               title: '确认移除',
               content: '确定要移除该项目吗？',
-              onOk: () => handleDelete([record.key]),
+              onOk: () => handleDelete([id]),
             });
           }}>移除</Button>
         </Space>
@@ -399,10 +419,15 @@ const PriceListAdjustment: React.FC = () => {
         <Space>
           <Button type="link" size="small" style={{ padding: 0 }} onClick={() => setReplacementModalVisible(true)} disabled={!isEditable}>替换项</Button>
           <Button type="link" size="small" danger style={{ padding: 0 }} disabled={!isEditable} onClick={() => {
+            const id = record.id;
+            if (!id) {
+              antd.message.error('无法获取项目ID');
+              return;
+            }
             antd.Modal.confirm({
               title: '确认移除',
               content: '确定要移除该项目吗？',
-              onOk: () => handleDelete([record.key]),
+              onOk: () => handleDelete([id]),
             });
           }}>移除</Button>
         </Space>
@@ -683,6 +708,7 @@ const PriceListAdjustment: React.FC = () => {
         </div>
         <div style={{ flex: 1, padding: 0, overflowY: 'auto' }}>
           <Table 
+            rowKey="id"
             rowSelection={{
               selectedRowKeys,
               onChange: (keys) => setSelectedRowKeys(keys),
@@ -758,9 +784,9 @@ const PriceListAdjustment: React.FC = () => {
         }} 
         onOk={(values) => {
           if (editingPriceItem) {
-            // Update existing item
+            const editingId = editingPriceItem.id;
             setItems(prev => prev.map(item => {
-              if (item.key === editingPriceItem.key) {
+              if (item.id === editingId) {
                 const updatedDetail = {
                   ...(item.detail || {}),
                   ...values,
@@ -768,9 +794,16 @@ const PriceListAdjustment: React.FC = () => {
                   itemClassName: values.category,
                   spec: values.spec,
                   outRcptName: values.outRcpt,
+                  outRcptCode: values.outRcptCode,
                   inRcptName: values.inRcpt,
+                  inRcptCode: values.inRcptCode,
                   recordFrontName: values.recordFront,
+                  recordFrontCode: values.recordFrontCode,
                   statisTypeName: values.statisType,
+                  statisTypeCode: values.statisTypeCode,
+                  outFrontCode: values.outFrontCode,
+                  accLargeCode: values.accLargeCode,
+                  accSmallCode: values.accSmallCode,
                   priceList: values.priceList
                 };
                 return { ...item, ...values, detail: updatedDetail };
@@ -780,8 +813,10 @@ const PriceListAdjustment: React.FC = () => {
             antd.message.success('修改成功');
           } else {
             // Add new item
+            const newId = `new_${Date.now()}`;
             const newItem: PriceItem = {
-              key: Math.random().toString(36).substring(7),
+              id: newId,
+              key: newId,
               name: values.name,
               code: values.itemCode,
               spec: values.spec,
@@ -790,15 +825,23 @@ const PriceListAdjustment: React.FC = () => {
               adjustType: 'I',
               remarks: values.remarks,
               detail: {
+                id: newId,
                 itemName: values.name,
                 itemCode: values.itemCode,
                 spec: values.spec,
                 unit: values.unit,
                 itemClassName: values.category,
                 outRcptName: values.outRcpt,
+                outRcptCode: values.outRcptCode,
                 inRcptName: values.inRcpt,
+                inRcptCode: values.inRcptCode,
                 recordFrontName: values.recordFront,
+                recordFrontCode: values.recordFrontCode,
                 statisTypeName: values.statisType,
+                statisTypeCode: values.statisTypeCode,
+                outFrontCode: values.outFrontCode,
+                accLargeCode: values.accLargeCode,
+                accSmallCode: values.accSmallCode,
                 priceList: values.priceList,
                 pyCode: values.pyCode,
                 remarks: values.remarks,

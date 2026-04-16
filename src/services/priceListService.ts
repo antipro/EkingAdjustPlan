@@ -16,6 +16,7 @@ export interface PricePlan {
 
 export interface PriceItem {
   key: string;
+  id?: string;
   active?: string;
   code?: string;
   name?: string;
