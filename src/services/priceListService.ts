@@ -19,7 +19,7 @@ export interface PriceItem {
   active?: string;
   code?: string;
   name?: string;
-  specs?: string;
+  spec?: string;
   unit?: string;
   price3?: string;
   price2?: string;
@@ -103,7 +103,7 @@ const tableData: PriceItem[] = [
     active: '否',
     code: '20251121001',
     name: '前牙美容修复术',
-    specs: '/',
+    spec: '/',
     unit: '套',
     price3: '200',
     price2: '180',
@@ -117,7 +117,7 @@ const tableData: PriceItem[] = [
     active: '否',
     code: '20251121002',
     name: '多学科诊疗费',
-    specs: '/',
+    spec: '/',
     unit: '套',
     price3: '48',
     price2: '32',
@@ -181,7 +181,7 @@ const deactivateTableData: PriceItem[] = [
     active: '否',
     code: '20251121001',
     name: '前牙美容修复术',
-    specs: '/',
+    spec: '/',
     unit: '套',
     itemCode: '10000',
     category: '处置',

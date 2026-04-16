@@ -171,7 +171,8 @@ const PriceListAdjustment: React.FC = () => {
         planId: selectedPlan.id,
         itemList: items.map(item => {
           const { detail, ...rest } = item;
-          return { ...rest, ...detail };
+          // Merge detail into rest, but rest (which contains updates) should take precedence
+          return { ...detail, ...rest };
         }),
       });
       if (res.code === 'SUCCESS') {
@@ -190,7 +191,7 @@ const PriceListAdjustment: React.FC = () => {
     { title: '生效', dataIndex: 'active', key: 'active', width: 60 },
     { title: '收费项目编码', dataIndex: 'code', key: 'code', width: 120 },
     { title: '项目名称', dataIndex: 'name', key: 'name', width: 150 },
-    { title: '规格', dataIndex: 'specs', key: 'specs', width: 60 },
+    { title: '规格', dataIndex: 'spec', key: 'spec', width: 60 },
     { title: '单位', dataIndex: 'unit', key: 'unit', width: 60 },
     { title: '物价(三级)', dataIndex: 'price3', key: 'price3', width: 100 },
     { title: '物价(二级)', dataIndex: 'price2', key: 'price2', width: 100 },
@@ -711,9 +712,24 @@ const PriceListAdjustment: React.FC = () => {
         onOk={(values) => {
           if (editingPriceItem) {
             // Update existing item
-            setItems(prev => prev.map(item => 
-              item.key === editingPriceItem.key ? { ...item, ...values } : item
-            ));
+            setItems(prev => prev.map(item => {
+              if (item.key === editingPriceItem.key) {
+                const updatedDetail = {
+                  ...(item.detail || {}),
+                  ...values,
+                  itemName: values.name,
+                  itemClassName: values.category,
+                  spec: values.spec,
+                  outRcptName: values.outRcpt,
+                  inRcptName: values.inRcpt,
+                  recordFrontName: values.recordFront,
+                  statisTypeName: values.statisType,
+                  priceList: values.priceList
+                };
+                return { ...item, ...values, detail: updatedDetail };
+              }
+              return item;
+            }));
             antd.message.success('修改成功');
           } else {
             // Add new item
@@ -721,11 +737,25 @@ const PriceListAdjustment: React.FC = () => {
               key: Math.random().toString(36).substring(7),
               name: values.name,
               code: values.itemCode,
-              specs: values.specs,
+              spec: values.spec,
               unit: values.unit,
               category: values.category,
               adjustType: 'I',
               remarks: values.remarks,
+              detail: {
+                itemName: values.name,
+                itemCode: values.itemCode,
+                spec: values.spec,
+                unit: values.unit,
+                itemClassName: values.category,
+                outRcptName: values.outRcpt,
+                inRcptName: values.inRcpt,
+                recordFrontName: values.recordFront,
+                statisTypeName: values.statisType,
+                priceList: values.priceList,
+                pyCode: values.pyCode,
+                remarks: values.remarks,
+              }
             };
             setItems(prev => [newItem, ...prev]);
             antd.message.success('新增成功');
@@ -747,7 +777,7 @@ const PriceListAdjustment: React.FC = () => {
             key: item.id,
             name: item.itemName,
             code: item.itemCode,
-            specs: item.spec,
+            spec: item.spec,
             unit: item.unit,
             category: item.itemClassName,
             adjustType: type,
