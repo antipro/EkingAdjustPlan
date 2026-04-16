@@ -58,7 +58,7 @@ export interface LinkedClinicalItem {
   category: string;
   name: string;
   linkedItems: string;
-  processType: string;
+  adjustType: string;
 }
 
 const planList: PricePlan[] = [
@@ -220,7 +220,7 @@ const linkedClinicalData: LinkedClinicalItem[] = [
     category: '检验',
     name: 'EB病毒抗体六联检',
     linkedItems: 'EB病毒抗体 (早期抗原IgM) x1; EB病毒抗体 (核心抗原Igc) x1; E...',
-    processType: '',
+    adjustType: '',
   },
 ];
 
@@ -279,5 +279,40 @@ export const priceListService = {
     // Mock success
     console.log('Mock Batch Delete Price:', params);
     return { code: 'SUCCESS', sucMsg: '删除成功' };
+  },
+  queryClinicItemByPriceCode: async (itemCode: string) => {
+    if (import.meta.env.VITE_MOCK === 'false') {
+      const response = await request<any>(`/api/clinic-item-dict/queryClinicItemByPriceCode?itemCode=${itemCode}`);
+      return response;
+    }
+    // Mock data
+    return {
+      code: 'SUCCESS',
+      data: {
+        dataInfo: [
+          {
+            clinicName: "彩色多普勒超声常规检查（胆）",
+            stopFlag: "0",
+            processTimeStamp: 1775728936951,
+            inpEnable: "1",
+            empNo: "000003",
+            wbCode: "GIJNQRSTQS",
+            orderIndicators: "0",
+            unit: "次",
+            internetClinicFlag: "0",
+            clinicClassCode: "D",
+            lastModifyTime: "2026-04-09 18:02:16",
+            clinicCode: "245933",
+            id: "856691127418355712",
+            continueFlag: "0",
+            highRiskFlag: 0,
+            outpEnable: "1",
+            pyCode: "CSDPLCSCGJCD",
+            lastUpdateTime: "2026-04-09 18:02:16"
+          }
+        ]
+      },
+      sucMsg: "操作成功"
+    };
   }
 };

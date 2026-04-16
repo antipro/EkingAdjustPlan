@@ -159,29 +159,71 @@ const PriceListAdjustment: React.FC = () => {
 
   useEffect(() => {
     if (activeTab === '3') {
-      const selectedItems = items.filter(item => selectedRowKeys.includes(item.id || ''));
+      const selectedItems = items.filter(item => selectedRowKeys.includes(item.id || item.key));
       const allLinkedItems = selectedItems.flatMap(item => {
         const clinicItems = item.clinicItemList || [];
         return clinicItems.map((ci: any) => ({
           key: ci.id || ci.clinicCode || Math.random().toString(),
-          priceItemId: item.id,
+          priceItemId: item.id || item.key,
           code: ci.clinicCode,
           category: ci.clinicClassName,
           name: ci.clinicName,
           linkedItems: item.name,
-          processType: ci.adjustType || '',
+          adjustType: ci.adjustType || '',
         }));
       });
       
       const filteredItems = showOnlyUnprocessed 
-        ? allLinkedItems.filter(item => !item.processType)
+        ? allLinkedItems.filter(item => !item.adjustType)
         : allLinkedItems;
         
       setLinkedItems(filteredItems);
     } else {
       setLinkedItems([]);
     }
-  }, [selectedRowKeys, items, activeTab]);
+  }, [selectedRowKeys, items, activeTab, showOnlyUnprocessed]);
+
+  const handlePriceItemClick = async (record: PriceItem) => {
+    if (!record.itemCode) return;
+    
+    try {
+      const res = await priceListService.queryClinicItemByPriceCode(record.itemCode);
+      if (res.code === 'SUCCESS') {
+        const remoteClinicItems = res.data.dataInfo || [];
+        
+        setItems(prev => prev.map(item => {
+          if (item.key === record.key) {
+            const existingClinicItems = item.clinicItemList || [];
+            const mergedClinicItems = [...existingClinicItems];
+            
+            remoteClinicItems.forEach((remoteItem: any) => {
+              const index = mergedClinicItems.findIndex(ci => ci.clinicCode === remoteItem.clinicCode);
+              if (index > -1) {
+                // Merge attributes
+                mergedClinicItems[index] = {
+                  ...mergedClinicItems[index],
+                  ...remoteItem,
+                  // adjustType is 处理方式
+                  adjustType: mergedClinicItems[index].adjustType || remoteItem.adjustType || ''
+                };
+              } else {
+                // Add new item
+                mergedClinicItems.push({
+                  ...remoteItem,
+                  adjustType: remoteItem.adjustType || ''
+                });
+              }
+            });
+            
+            return { ...item, clinicItemList: mergedClinicItems };
+          }
+          return item;
+        }));
+      }
+    } catch (e) {
+      console.error('Failed to query clinic items:', e);
+    }
+  };
 
   const handleSearch = () => {
     setParams(prev => ({ ...prev, pageNum: 1 }));
@@ -474,8 +516,8 @@ const PriceListAdjustment: React.FC = () => {
     { title: '关联的价表项目', dataIndex: 'linkedItems', key: 'linkedItems', width: 300 },
     { 
       title: '处理方式', 
-      dataIndex: 'processType', 
-      key: 'processType', 
+      dataIndex: 'adjustType', 
+      key: 'adjustType', 
       width: 150,
       render: (text: string, record: LinkedClinicalItem) => (
         <Select 
@@ -484,7 +526,7 @@ const PriceListAdjustment: React.FC = () => {
           onChange={(value) => {
             if (!isEditable) return;
             setItems(prev => prev.map(item => {
-              if (item.id === record.priceItemId) {
+              if ((item.id || item.key) === record.priceItemId) {
                 const newClinicItemList = (item.clinicItemList || []).map((ci: any) => {
                   const ciKey = ci.id || ci.clinicCode;
                   if (ciKey === record.key) {
@@ -513,7 +555,7 @@ const PriceListAdjustment: React.FC = () => {
       key: 'action', 
       width: 120,
       render: (_: any, record: LinkedClinicalItem) => {
-        const disabled = !isEditable || ['替换', '停用临床', '移除'].includes(record.processType);
+        const disabled = !isEditable || ['替换', '停用临床', '移除'].includes(record.adjustType);
         return (
           <Space>
             <Button 
@@ -754,6 +796,13 @@ const PriceListAdjustment: React.FC = () => {
               selectedRowKeys,
               onChange: (keys) => setSelectedRowKeys(keys),
             }}
+            onRow={(record) => ({
+              onClick: () => {
+                if (activeTab === '3') {
+                  handlePriceItemClick(record);
+                }
+              },
+            })}
             columns={activeTab === '2' ? adjustColumns : activeTab === '3' ? deactivateColumns : columns} 
             dataSource={items} 
             loading={loading}
