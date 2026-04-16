@@ -178,6 +178,7 @@ const PriceListAdjustment: React.FC = () => {
       });
       if (res.code === 'SUCCESS') {
         antd.message.success('保存成功');
+        fetchItems();
       } else {
         antd.message.error(res.sucMsg || '保存失败');
       }
