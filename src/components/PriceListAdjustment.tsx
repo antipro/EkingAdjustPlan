@@ -76,6 +76,8 @@ const PriceListAdjustment: React.FC = () => {
   const [editingLinkedItem, setEditingLinkedItem] = useState<LinkedClinicalItem | null>(null);
   const [editingPriceItem, setEditingPriceItem] = useState<PriceItem | null>(null);
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+  const [selectedLinkedRowKeys, setSelectedLinkedRowKeys] = useState<React.Key[]>([]);
+  const [showOnlyUnprocessed, setShowOnlyUnprocessed] = useState(false);
 
   const isEditable = selectedPlan?.status === '0' || selectedPlan?.status === '3';
 
@@ -110,10 +112,6 @@ const PriceListAdjustment: React.FC = () => {
       setTotal(result.data.dataInfo.totalNum);
     }
 
-    if (activeTab === '3') {
-      const linkedData = await priceListService.getLinkedClinicalItems();
-      setLinkedItems(linkedData);
-    }
     setLoading(false);
   };
 
@@ -158,6 +156,32 @@ const PriceListAdjustment: React.FC = () => {
   useEffect(() => {
     fetchItems();
   }, [activeTab, selectedPlan, params.pageNum, params.pageSize]);
+
+  useEffect(() => {
+    if (activeTab === '3') {
+      const selectedItems = items.filter(item => selectedRowKeys.includes(item.id || ''));
+      const allLinkedItems = selectedItems.flatMap(item => {
+        const clinicItems = item.clinicItemList || [];
+        return clinicItems.map((ci: any) => ({
+          key: ci.id || ci.clinicCode || Math.random().toString(),
+          priceItemId: item.id,
+          code: ci.clinicCode,
+          category: ci.clinicClassName,
+          name: ci.clinicName,
+          linkedItems: item.name,
+          processType: ci.adjustType || '',
+        }));
+      });
+      
+      const filteredItems = showOnlyUnprocessed 
+        ? allLinkedItems.filter(item => !item.processType)
+        : allLinkedItems;
+        
+      setLinkedItems(filteredItems);
+    } else {
+      setLinkedItems([]);
+    }
+  }, [selectedRowKeys, items, activeTab]);
 
   const handleSearch = () => {
     setParams(prev => ({ ...prev, pageNum: 1 }));
@@ -228,6 +252,32 @@ const PriceListAdjustment: React.FC = () => {
       content: `确定要移除选中的 ${selectedRowKeys.length} 个项目吗？`,
       onOk: () => handleDelete(idList),
     });
+  };
+
+  const handleBatchUpdateLinkedProcessType = (type: string) => {
+    if (selectedLinkedRowKeys.length === 0) {
+      antd.message.warning('请先选择要处理的临床项目');
+      return;
+    }
+    
+    setItems(prev => prev.map(item => {
+      const hasSelectedLinked = (item.clinicItemList || []).some((ci: any) => 
+        selectedLinkedRowKeys.includes(ci.id || ci.clinicCode)
+      );
+      
+      if (hasSelectedLinked) {
+        const newClinicItemList = (item.clinicItemList || []).map((ci: any) => {
+          const ciKey = ci.id || ci.clinicCode;
+          if (selectedLinkedRowKeys.includes(ciKey)) {
+            return { ...ci, adjustType: type };
+          }
+          return ci;
+        });
+        return { ...item, clinicItemList: newClinicItemList };
+      }
+      return item;
+    }));
+    antd.message.success(`已批量设置为${type}`);
   };
 
   const columns = [
@@ -421,10 +471,19 @@ const PriceListAdjustment: React.FC = () => {
           style={{ width: '100%' }}
           onChange={(value) => {
             if (!isEditable) return;
-            const newLinkedItems = linkedItems.map(item => 
-              item.key === record.key ? { ...item, processType: value } : item
-            );
-            setLinkedItems(newLinkedItems);
+            setItems(prev => prev.map(item => {
+              if (item.id === record.priceItemId) {
+                const newClinicItemList = (item.clinicItemList || []).map((ci: any) => {
+                  const ciKey = ci.id || ci.clinicCode;
+                  if (ciKey === record.key) {
+                    return { ...ci, adjustType: value };
+                  }
+                  return ci;
+                });
+                return { ...item, clinicItemList: newClinicItemList };
+              }
+              return item;
+            }));
           }}
           disabled={!isEditable}
           options={[
@@ -703,16 +762,26 @@ const PriceListAdjustment: React.FC = () => {
               <div style={{ padding: '8px 16px', background: '#e6f7ff', borderBottom: '1px solid #1890ff', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Space>
                   <span style={{ color: '#1890ff', fontWeight: 'bold' }}>| 关联的临床项目</span>
-                  <antd.Checkbox style={{ marginLeft: 20 }}>仅显示未设置处理方式的项目</antd.Checkbox>
+                  <antd.Checkbox 
+                    style={{ marginLeft: 20 }} 
+                    checked={showOnlyUnprocessed}
+                    onChange={(e) => setShowOnlyUnprocessed(e.target.checked)}
+                  >
+                    仅显示未设置处理方式的项目
+                  </antd.Checkbox>
                 </Space>
                 <Space>
-                  <Button size="small" type="primary" ghost disabled={!isEditable}>替换</Button>
-                  <Button size="small" danger ghost disabled={!isEditable}>移除</Button>
-                  <Button size="small" type="primary" ghost disabled={!isEditable}>停用临床</Button>
+                  <Button size="small" type="primary" ghost disabled={!isEditable} onClick={() => handleBatchUpdateLinkedProcessType('替换')}>替换</Button>
+                  <Button size="small" danger ghost disabled={!isEditable} onClick={() => handleBatchUpdateLinkedProcessType('移除')}>移除</Button>
+                  <Button size="small" type="primary" ghost disabled={!isEditable} onClick={() => handleBatchUpdateLinkedProcessType('停用临床')}>停用临床</Button>
                 </Space>
               </div>
               <Table 
-                rowSelection={{ type: 'checkbox' }}
+                rowKey="key"
+                rowSelection={{
+                  selectedRowKeys: selectedLinkedRowKeys,
+                  onChange: (keys) => setSelectedLinkedRowKeys(keys),
+                }}
                 columns={linkedClinicalColumns} 
                 dataSource={linkedItems} 
                 pagination={false}
@@ -721,10 +790,10 @@ const PriceListAdjustment: React.FC = () => {
                 scroll={{ x: 1000, y: 300 }}
               />
               <div style={{ padding: '8px 16px', borderTop: '1px solid #f0f0f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Text type="secondary">共6条</Text>
+                <Text type="secondary">共{linkedItems.length}条</Text>
                 <Space>
-                  <Button type="primary" disabled={!isEditable}>处理完成</Button>
-                  <Button disabled={!isEditable}>暂存</Button>
+                  <Button type="primary" disabled={!isEditable} onClick={handleBatchSave}>处理完成</Button>
+                  <Button disabled={!isEditable} onClick={handleBatchSave}>暂存</Button>
                 </Space>
               </div>
             </div>

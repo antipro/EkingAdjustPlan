@@ -53,6 +53,7 @@ export interface PriceItem {
 
 export interface LinkedClinicalItem {
   key: string;
+  priceItemId?: string;
   code: string;
   category: string;
   name: string;
@@ -179,6 +180,7 @@ const adjustTableData: PriceItem[] = [
 
 const deactivateTableData: PriceItem[] = [
   {
+    id: 'deactivate_1',
     key: '1',
     active: '否',
     code: '20251121001',
@@ -192,6 +194,22 @@ const deactivateTableData: PriceItem[] = [
     repUnit: '',
     repItemCode: '',
     status: '已完成',
+    clinicItemList: [
+      {
+        id: 'clinic_1',
+        clinicCode: 'C001',
+        clinicClassName: '处置',
+        clinicName: '前牙美容修复临床项目',
+        adjustType: '',
+      },
+      {
+        id: 'clinic_2',
+        clinicCode: 'C002',
+        clinicClassName: '处置',
+        clinicName: '前牙美容修复辅助项目',
+        adjustType: '替换',
+      }
+    ]
   },
 ];
 
