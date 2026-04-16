@@ -187,6 +187,7 @@ const PriceItemModal: React.FC<PriceItemModalProps> = ({
           style={{ width: '100%' }}
           options={provinceDict}
           placeholder="选择省份"
+          disabled
           filterOption={(input, option) =>
             (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
           }
