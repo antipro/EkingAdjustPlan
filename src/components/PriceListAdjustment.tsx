@@ -159,23 +159,9 @@ const PriceListAdjustment: React.FC = () => {
 
   useEffect(() => {
     if (activeTab === '3') {
-      const selectedItems = items.filter(item => selectedRowKeys.includes(item.id || item.key));
-      const allLinkedItems = selectedItems.flatMap(item => {
-        const clinicItems = item.clinicItemList || [];
-        return clinicItems.map((ci: any) => ({
-          key: ci.id || ci.clinicCode || Math.random().toString(),
-          priceItemId: item.id || item.key,
-          code: ci.clinicCode,
-          category: ci.clinicClassName,
-          name: ci.clinicName,
-          linkedItems: item.name,
-          adjustType: ci.adjustType || '',
-        }));
-      });
-      
       const filteredItems = showOnlyUnprocessed 
-        ? allLinkedItems.filter(item => !item.adjustType)
-        : allLinkedItems;
+        ? linkedItems.filter(item => !item.adjustType)
+        : linkedItems;
         
       setLinkedItems(filteredItems);
     } else {
@@ -184,41 +170,26 @@ const PriceListAdjustment: React.FC = () => {
   }, [selectedRowKeys, items, activeTab, showOnlyUnprocessed]);
 
   const handlePriceItemClick = async (record: PriceItem) => {
-    if (!record.itemCode) return;
+    if (!record.detail?.itemCode) return;
     
     try {
-      const res = await priceListService.queryClinicItemByPriceCode(record.itemCode);
+      const res = await priceListService.queryClinicItemByPriceCode(record.detail.itemCode);
       if (res.code === 'SUCCESS') {
         const remoteClinicItems = res.data.dataInfo || [];
         
-        setItems(prev => prev.map(item => {
-          if (item.key === record.key) {
-            const existingClinicItems = item.clinicItemList || [];
-            const mergedClinicItems = [...existingClinicItems];
-            
-            remoteClinicItems.forEach((remoteItem: any) => {
-              const index = mergedClinicItems.findIndex(ci => ci.clinicCode === remoteItem.clinicCode);
-              if (index > -1) {
-                // Merge attributes
-                mergedClinicItems[index] = {
-                  ...mergedClinicItems[index],
-                  ...remoteItem,
-                  // adjustType is 处理方式
-                  adjustType: mergedClinicItems[index].adjustType || remoteItem.adjustType || ''
-                };
-              } else {
-                // Add new item
-                mergedClinicItems.push({
-                  ...remoteItem,
-                  adjustType: remoteItem.adjustType || ''
-                });
-              }
-            });
-            
-            return { ...item, clinicItemList: mergedClinicItems };
-          }
-          return item;
-        }));
+        const existingClinicItems = record.clinicItemList || [];
+        const mergedClinicItems = [...existingClinicItems];
+        
+        setLinkedItems(prev => {
+          const newLinkedItems = remoteClinicItems.map((remote: any) => {
+            const existing = existingClinicItems.find((ec: any) => (ec.clinicCode === remote.clinicCode));
+            if (existing) {
+              return { ...existing, ...remote, adjustType: existing.adjustType || remote.adjustType || '' };
+            }
+            return remote;
+          });
+          return newLinkedItems;
+        });
       }
     } catch (e) {
       console.error('Failed to query clinic items:', e);
@@ -510,10 +481,14 @@ const PriceListAdjustment: React.FC = () => {
   ];
 
   const linkedClinicalColumns = [
-    { title: '项目代码', dataIndex: 'code', key: 'code', width: 100 },
-    { title: '项目分类', dataIndex: 'category', key: 'category', width: 100 },
-    { title: '项目名称', dataIndex: 'name', key: 'name', width: 200 },
-    { title: '关联的价表项目', dataIndex: 'linkedItems', key: 'linkedItems', width: 300 },
+    { title: '项目代码', dataIndex: 'clinicCode', key: 'code', width: 100 },
+    { title: '项目分类', dataIndex: 'clinicClassName', key: 'category', width: 100 },
+    { title: '项目名称', dataIndex: 'clinicName', key: 'name', width: 200 },
+    { title: '关联的价表项目', dataIndex: 'priceList', key: 'linkedItems', width: 300,
+      render: (priceList: object[], record: LinkedClinicalItem) => {
+        return priceList.map((p: any) => p.itemName + "*" + p.quantity).join('; ');
+      }
+    },
     { 
       title: '处理方式', 
       dataIndex: 'adjustType', 

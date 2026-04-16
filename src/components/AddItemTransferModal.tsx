@@ -56,7 +56,7 @@ const AddItemTransferModal: React.FC<AddItemTransferModalProps> = ({
         pageSize,
         status,
         search: rightSearch,
-        itemClass: rightCategory || 'C'
+        itemClass: rightCategory
       });
       if (res.code === 'SUCCESS') {
         setAlternativeItems(res.data.dataInfo);

@@ -18,28 +18,8 @@ export interface PriceItem {
   key: string;
   id?: string;
   active?: string;
-  code?: string;
-  name?: string;
-  spec?: string;
-  unit?: string;
-  price3?: string;
-  price2?: string;
-  price1?: string;
-  oldPrice3?: string;
-  oldPrice2?: string;
-  oldPrice1?: string;
-  newPrice3?: string;
-  newPrice2?: string;
-  newPrice1?: string;
-  natCode?: string;
-  natName?: string;
   remarks?: string;
   otherChanges?: string;
-  itemCode?: string;
-  category?: string;
-  repCode?: string;
-  repName?: string;
-  repUnit?: string;
   repItemCode?: string;
   status?: string | number;
   // New fields for adjustment details
