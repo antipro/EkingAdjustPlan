@@ -246,5 +246,18 @@ export const priceListService = {
     // Mock success
     console.log('Mock Batch Save Price:', params);
     return { code: 'SUCCESS', sucMsg: '保存成功' };
+  },
+  batchDelete: async (params: { planId: string; idList: string[] }): Promise<{ code: string; sucMsg: string }> => {
+    if (import.meta.env.VITE_MOCK === 'false') {
+      const response = await request<any>('/api/adjust/item/batch-delete', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(params),
+      });
+      return response;
+    }
+    // Mock success
+    console.log('Mock Batch Delete Price:', params);
+    return { code: 'SUCCESS', sucMsg: '删除成功' };
   }
 };

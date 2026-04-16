@@ -75,6 +75,7 @@ const PriceListAdjustment: React.FC = () => {
   const [adjustModalVisible, setAdjustModalVisible] = useState(false);
   const [editingLinkedItem, setEditingLinkedItem] = useState<LinkedClinicalItem | null>(null);
   const [editingPriceItem, setEditingPriceItem] = useState<PriceItem | null>(null);
+  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
 
   const isEditable = selectedPlan?.status === '0' || selectedPlan?.status === '3';
 
@@ -187,6 +188,37 @@ const PriceListAdjustment: React.FC = () => {
     }
   };
 
+  const handleDelete = async (idList: string[]) => {
+    if (!selectedPlan) return;
+    try {
+      const res = await priceListService.batchDelete({
+        planId: selectedPlan.id,
+        idList: idList,
+      });
+      if (res.code === 'SUCCESS') {
+        antd.message.success('移除成功');
+        fetchItems();
+        setSelectedRowKeys([]);
+      } else {
+        antd.message.error(res.sucMsg || '移除失败');
+      }
+    } catch (e) {
+      antd.message.error('移除失败');
+    }
+  };
+
+  const handleBatchDelete = () => {
+    if (selectedRowKeys.length === 0) {
+      antd.message.warning('请先选择要移除的项目');
+      return;
+    }
+    antd.Modal.confirm({
+      title: '确认移除',
+      content: `确定要移除选中的 ${selectedRowKeys.length} 个项目吗？`,
+      onOk: () => handleDelete(selectedRowKeys.map(key => String(key))),
+    });
+  };
+
   const columns = [
     { title: '生效', dataIndex: 'active', key: 'active', width: 60 },
     { title: '收费项目编码', dataIndex: 'code', key: 'code', width: 120 },
@@ -209,7 +241,13 @@ const PriceListAdjustment: React.FC = () => {
             setEditingPriceItem(record);
             setModalVisible(true);
           }}>编辑</Button>
-          <Button type="link" size="small" danger disabled={!isEditable}>移除</Button>
+          <Button type="link" size="small" danger disabled={!isEditable} onClick={() => {
+            antd.Modal.confirm({
+              title: '确认移除',
+              content: '确定要移除该项目吗？',
+              onOk: () => handleDelete([record.key]),
+            });
+          }}>移除</Button>
         </Space>
       )
     }
@@ -319,7 +357,13 @@ const PriceListAdjustment: React.FC = () => {
             setEditingPriceItem(record);
             setModalVisible(true);
           }}>编辑</Button>
-          <Button type="link" size="small" danger disabled={!isEditable}>移除</Button>
+          <Button type="link" size="small" danger disabled={!isEditable} onClick={() => {
+            antd.Modal.confirm({
+              title: '确认移除',
+              content: '确定要移除该项目吗？',
+              onOk: () => handleDelete([record.key]),
+            });
+          }}>移除</Button>
         </Space>
       )
     }
@@ -351,10 +395,16 @@ const PriceListAdjustment: React.FC = () => {
       title: '操作', 
       key: 'action', 
       width: 120,
-      render: () => (
+      render: (_, record: PriceItem) => (
         <Space>
           <Button type="link" size="small" style={{ padding: 0 }} onClick={() => setReplacementModalVisible(true)} disabled={!isEditable}>替换项</Button>
-          <Button type="link" size="small" danger style={{ padding: 0 }} disabled={!isEditable}>移除</Button>
+          <Button type="link" size="small" danger style={{ padding: 0 }} disabled={!isEditable} onClick={() => {
+            antd.Modal.confirm({
+              title: '确认移除',
+              content: '确定要移除该项目吗？',
+              onOk: () => handleDelete([record.key]),
+            });
+          }}>移除</Button>
         </Space>
       )
     },
@@ -504,9 +554,7 @@ const PriceListAdjustment: React.FC = () => {
                     <Button size="small" icon={<ImportOutlined />} disabled={!isEditable}>导入 <DownOutlined /></Button>
                   </Dropdown>
                 </Space>
-                <Dropdown menu={{ items: [{ key: '1', label: '移除' }] }} danger disabled={!isEditable}>
-                  <Button size="small" danger disabled={!isEditable}>批量移除 <DownOutlined /></Button>
-                </Dropdown>
+                <Button size="small" danger disabled={!isEditable} onClick={handleBatchDelete}>批量移除</Button>
               </div>
             </>
           ) : activeTab === '3' ? (
@@ -564,9 +612,7 @@ const PriceListAdjustment: React.FC = () => {
                   </Dropdown>
                   <Button size="small" type="primary">导出临床项目</Button>
                 </Space>
-                <Dropdown menu={{ items: [{ key: '1', label: '移除' }] }} danger disabled={!isEditable}>
-                  <Button size="small" danger disabled={!isEditable}>批量移除 <DownOutlined /></Button>
-                </Dropdown>
+                <Button size="small" danger disabled={!isEditable} onClick={handleBatchDelete}>批量移除</Button>
               </div>
             </>
           ) : (
@@ -630,16 +676,17 @@ const PriceListAdjustment: React.FC = () => {
                     <Button size="small" type="primary" disabled={!isEditable}>1对1创建临床项目 <DownOutlined /></Button>
                   </Dropdown>
                 </Space>
-                <Dropdown menu={{ items: [{ key: '1', label: '删除' }] }} danger disabled={!isEditable}>
-                  <Button size="small" danger disabled={!isEditable}>批量删除 <DownOutlined /></Button>
-                </Dropdown>
+                <Button size="small" danger disabled={!isEditable} onClick={handleBatchDelete}>批量删除</Button>
               </div>
             </>
           )}
         </div>
         <div style={{ flex: 1, padding: 0, overflowY: 'auto' }}>
           <Table 
-            rowSelection={{ type: 'checkbox' }}
+            rowSelection={{
+              selectedRowKeys,
+              onChange: (keys) => setSelectedRowKeys(keys),
+            }}
             columns={activeTab === '2' ? adjustColumns : activeTab === '3' ? deactivateColumns : columns} 
             dataSource={items} 
             loading={loading}
