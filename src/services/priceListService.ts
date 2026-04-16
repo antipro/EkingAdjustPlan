@@ -28,10 +28,12 @@ export interface PriceItem {
   changeSummary?: string;
   detail?: any;
   priceLevelList?: any[];
-  clinicItemList?: any[];
+  clinicList?: any[];
 }
 
 export interface LinkedClinicalItem {
+  clinicCode: string;
+  clinicName: string;
   key: string;
   priceItemId?: string;
   code: string;
@@ -117,7 +119,7 @@ const adjustTableData: PriceItem[] = [
     adjustType: 'U',
     changes: '{"itemName":{"before":"234","after":"测试项目名称"}}',
     priceLevelList: [],
-    clinicItemList: [],
+    clinicList: [],
     detail: {
       outRcptName: "诊察费",
       processTimeStamp: 1776066839196,
@@ -174,7 +176,7 @@ const deactivateTableData: PriceItem[] = [
     repUnit: '',
     repItemCode: '',
     status: '已完成',
-    clinicItemList: [
+    clinicList: [
       {
         id: 'clinic_1',
         clinicCode: 'C001',

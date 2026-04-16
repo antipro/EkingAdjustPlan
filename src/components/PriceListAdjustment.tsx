@@ -177,7 +177,7 @@ const PriceListAdjustment: React.FC = () => {
       if (res.code === 'SUCCESS') {
         const remoteClinicItems = res.data.dataInfo || [];
         
-        const existingClinicItems = record.clinicItemList || [];
+        const existingClinicItems = record.clinicList || [];
         const mergedClinicItems = [...existingClinicItems];
         
         setLinkedItems(prev => {
@@ -280,19 +280,19 @@ const PriceListAdjustment: React.FC = () => {
     }
     
     setItems(prev => prev.map(item => {
-      const hasSelectedLinked = (item.clinicItemList || []).some((ci: any) => 
+      const hasSelectedLinked = (item.clinicList || []).some((ci: any) => 
         selectedLinkedRowKeys.includes(ci.id || ci.clinicCode)
       );
       
       if (hasSelectedLinked) {
-        const newClinicItemList = (item.clinicItemList || []).map((ci: any) => {
+        const newClinicList = (item.clinicList || []).map((ci: any) => {
           const ciKey = ci.id || ci.clinicCode;
           if (selectedLinkedRowKeys.includes(ciKey)) {
             return { ...ci, adjustType: type };
           }
           return ci;
         });
-        return { ...item, clinicItemList: newClinicItemList };
+        return { ...item, clinicList: newClinicList };
       }
       return item;
     }));
@@ -460,7 +460,7 @@ const PriceListAdjustment: React.FC = () => {
       width: 120,
       render: (_, record: PriceItem) => (
         <Space>
-          <Button type="link" size="small" style={{ padding: 0 }} onClick={() => setReplacementModalVisible(true)} disabled={!isEditable}>替换项</Button>
+          <Button type="link" size="small" style={{ padding: 0 }} onClick={(e) => {setReplacementModalVisible(true);e.stopPropagation();}} disabled={!isEditable}>替换项</Button>
           <Button type="link" size="small" danger style={{ padding: 0 }} disabled={!isEditable} onClick={() => {
             antd.Modal.confirm({
               title: '确认移除',
@@ -501,15 +501,18 @@ const PriceListAdjustment: React.FC = () => {
           onChange={(value) => {
             if (!isEditable) return;
             setItems(prev => prev.map(item => {
-              if ((item.id || item.key) === record.priceItemId) {
-                const newClinicItemList = (item.clinicItemList || []).map((ci: any) => {
-                  const ciKey = ci.id || ci.clinicCode;
-                  if (ciKey === record.key) {
-                    return { ...ci, adjustType: value };
-                  }
-                  return ci;
-                });
-                return { ...item, clinicItemList: newClinicItemList };
+              record.adjustType = value; // Update the adjustType in the linked item record
+              // Find the price item that this linked clinical item belongs to and update its clinicList
+              // If there is non-match, add new one.
+              item.clinicList = (item.clinicList || []).map((ci: any) => {
+                const ciKey = ci.clinicCode;
+                if (ciKey === record.clinicCode) {
+                  return { ...ci, adjustType: value };
+                }
+                return ci;              
+              });
+              if (!item.clinicList.some((ci: any) =>ci.clinicCode === record.clinicCode)) {
+                item.clinicList.push({ ...record, adjustType: value });
               }
               return item;
             }));
@@ -517,10 +520,10 @@ const PriceListAdjustment: React.FC = () => {
           disabled={!isEditable}
           options={[
             { value: '', label: '请选择' },
-            { value: '替换', label: '替换' },
-            { value: '移除', label: '移除' },
-            { value: '停用临床', label: '停用临床' },
-            { value: '调整', label: '调整' },
+            { value: 'R', label: '替换' },
+            { value: 'M', label: '移除' },
+            { value: 'D', label: '停用临床' },
+            { value: 'U', label: '调整' },
           ]}
         />
       )
@@ -827,10 +830,6 @@ const PriceListAdjustment: React.FC = () => {
               />
               <div style={{ padding: '8px 16px', borderTop: '1px solid #f0f0f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Text type="secondary">共{linkedItems.length}条</Text>
-                <Space>
-                  <Button type="primary" disabled={!isEditable} onClick={handleBatchSave}>处理完成</Button>
-                  <Button disabled={!isEditable} onClick={handleBatchSave}>暂存</Button>
-                </Space>
               </div>
             </div>
           )}
