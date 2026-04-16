@@ -45,6 +45,7 @@ export interface PriceItem {
   // New fields for adjustment details
   adjustType?: string;
   changes?: string;
+  changeSummary?: string;
   detail?: any;
   priceLevelList?: any[];
   clinicItemList?: any[];

@@ -327,40 +327,9 @@ const PriceListAdjustment: React.FC = () => {
     },
     { 
       title: '变动详情', 
-      dataIndex: 'changes', 
-      key: 'changes',
-      render: (text: string) => {
-        try {
-          const changes = JSON.parse(text || '{}');
-          const fieldMap: Record<string, string> = {
-            itemName: '项目名称',
-            itemCode: '项目编码',
-            spec: '规格',
-            unit: '单位',
-            itemClassName: '项目分类',
-            hpFeeName: '医保费用名称',
-            statisTypeName: '统计分类名称',
-            outRcptName: '门诊发票名称',
-            inRcptName: '住院发票名称',
-          };
-
-          const changeList = Object.entries(changes).map(([key, value]: [string, any]) => {
-            const label = fieldMap[key] || key;
-            return (
-              <div key={key} style={{ marginBottom: 2 }}>
-                <Text type="secondary" style={{ fontSize: 12 }}>{label}: </Text>
-                <Text delete type="secondary" style={{ fontSize: 12 }}>{value.before || '[空]'}</Text>
-                <Text style={{ margin: '0 4px', fontSize: 12 }}>{'->'}</Text>
-                <Text type="success" strong style={{ fontSize: 12 }}>{value.after || '[空]'}</Text>
-              </div>
-            );
-          });
-
-          return changeList.length > 0 ? <div>{changeList}</div> : <Text type="secondary">无变动</Text>;
-        } catch (e) {
-          return text;
-        }
-      }
+      dataIndex: 'changeSummary', 
+      key: 'changeSummary',
+      render: (text: string) => text || <Text type="secondary">无变动</Text>
     },
     {
       title: '操作',
