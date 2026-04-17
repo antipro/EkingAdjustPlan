@@ -95,7 +95,8 @@ const ClinicalProjectAdjustment: React.FC = () => {
   useEffect(() => {
     dictService.getItemTypeCodes().then(res => {
       if (res.code === 'SUCCESS') {
-        setCategories(res.data.dataInfo);
+        const filtered = res.data.dataInfo.filter(d => d.value !== 'A');
+        setCategories(filtered);
       }
     });
   }, []);

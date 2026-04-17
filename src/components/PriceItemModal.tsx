@@ -93,7 +93,35 @@ const PriceItemModal: React.FC<PriceItemModalProps> = ({
           insLimit: detail.insLimit,
         });
       } else {
-        form.resetFields();
+        setPriceList([]);
+        form.setFieldsValue({
+          category: '其它',
+          itemCode: '',
+          name: '',
+          spec: '/',
+          unit: '次',
+          outRcpt: '诊察费',
+          outRcptCode: '',
+          inRcpt: '诊察费',
+          inRcptCode: '',
+          recordFront: '其他费',
+          recordFrontCode: '',
+          statisType: '诊察费',
+          statisTypeCode: '',
+          pyCode: '',
+          nationChargeItemCode: '',
+          nationChargeItemName: '',
+          remarks: '',
+          alias: '',
+          outFront: undefined,
+          outFrontCode: '',
+          accLarge: undefined,
+          accLargeCode: '',
+          accSmall: undefined,
+          accSmallCode: '',
+          sybChargeItemCode: '',
+          insLimit: '',
+        });
       }
     }
   }, [visible, item, form]);

@@ -146,7 +146,12 @@ const PriceListAdjustment: React.FC = () => {
         try {
           const res = await dictService.getDict(config.type);
           if (res.code === 'SUCCESS') {
-            config.setter(res.data.dataInfo);
+            if (config.type === 'DOMBILL_BILL_CLASS_DICT') {
+              const filtered = res.data.dataInfo.filter(d => d.value !== 'A');
+              config.setter(filtered);
+            } else {
+              config.setter(res.data.dataInfo);
+            }
           }
         } catch (error) {
           console.error(`Failed to fetch dict ${config.type}:`, error);
@@ -313,16 +318,38 @@ const PriceListAdjustment: React.FC = () => {
 
   const columns = [
     { title: '生效', dataIndex: 'active', key: 'active', width: 60 },
-    { title: '收费项目编码', dataIndex: 'code', key: 'code', width: 120 },
-    { title: '项目名称', dataIndex: 'name', key: 'name', width: 150 },
-    { title: '规格', dataIndex: 'spec', key: 'spec', width: 60 },
-    { title: '单位', dataIndex: 'unit', key: 'unit', width: 60 },
-    { title: '物价(三级)', dataIndex: 'price3', key: 'price3', width: 100 },
-    { title: '物价(二级)', dataIndex: 'price2', key: 'price2', width: 100 },
-    { title: '物价(一级)', dataIndex: 'price1', key: 'price1', width: 100 },
-    { title: '国家收费项目编码', dataIndex: 'natCode', key: 'natCode', width: 150 },
-    { title: '国家收费项目名称', dataIndex: 'natName', key: 'natName', width: 150 },
-    { title: '备注说明', dataIndex: 'remarks', key: 'remarks' },
+    { title: '收费项目编码', key: 'code', width: 120, render: (text: any, record: PriceItem) => {
+      const priceCode = record.detail?.priceList?.[0]?.priceCode;
+      return priceCode;
+    }
+    },
+    { title: '项目名称', dataIndex: ['detail', 'itemName'], key: 'name', width: 150 },
+    { title: '规格', dataIndex: ['detail', 'spec'], key: 'spec', width: 60 },
+    { title: '单位', dataIndex: ['detail', 'unit'], key: 'unit', width: 60 },
+    { title: '物价(三级)', key: 'price3', width: 100, render: (text: any, record: PriceItem) => {
+      const detail = record.detail || {};
+      const priceLevelList = detail.priceList || record.priceLevelList || [];
+      const price = priceLevelList.filter((p: any) => p.priceLevelCode === '3').map((p: any) => p.retaBasicPrice).join(', ');
+      return price || '-';
+    }
+    },
+    { title: '物价(二级)', key: 'price2', width: 100, render: (text: any, record: PriceItem) => {
+      const detail = record.detail || {};
+      const priceLevelList = detail.priceList || record.priceLevelList || [];
+      const price = priceLevelList.filter((p: any) => p.priceLevelCode === '2').map((p: any) => p.retaBasicPrice).join(', ');
+      return price || '-';
+    }
+    },
+    { title: '物价(一级)', key: 'price1', width: 100, render: (text: any, record: PriceItem) => {
+      const detail = record.detail || {};
+      const priceLevelList = detail.priceList || record.priceLevelList || [];
+      const price = priceLevelList.filter((p: any) => p.priceLevelCode === '1').map((p: any) => p.retaBasicPrice).join(', ');
+      return price || '-';
+    }
+    },
+    { title: '国家收费项目编码', dataIndex: ['detail', 'nationChargeItemCode'], key: 'natCode', width: 150 },
+    { title: '国家收费项目名称', dataIndex: ['detail', 'nationChargeItemName'], key: 'natName', width: 150 },
+    { title: '备注说明', dataIndex: ['detail', 'remarks'], key: 'remarks' },
     {
       title: '操作',
       key: 'action',
@@ -854,7 +881,10 @@ const PriceListAdjustment: React.FC = () => {
               </Row>
               <div style={{ marginTop: 12, display: 'flex', justifyContent: 'space-between' }}>
                 <Space>
-                  <Button type="primary" size="small" icon={<PlusOutlined />} onClick={() => setModalVisible(true)} disabled={!isEditable}>新增</Button>
+                  <Button type="primary" size="small" icon={<PlusOutlined />} onClick={() => {
+                    setEditingPriceItem(null);
+                    setModalVisible(true);
+                  }} disabled={!isEditable}>新增</Button>
                   <Dropdown menu={{ items: [{ key: '1', label: '导入' }] }} disabled={!isEditable}>
                     <Button size="small" icon={<ImportOutlined />} disabled={!isEditable}>导入 <DownOutlined /></Button>
                   </Dropdown>
@@ -993,7 +1023,7 @@ const PriceListAdjustment: React.FC = () => {
             // Add new item
             const newId = `new_${Date.now()}`;
             const newItem: PriceItem = {
-              id: newId,
+              id: null,
               key: newId,
               name: values.name,
               code: values.itemCode,
@@ -1003,7 +1033,7 @@ const PriceListAdjustment: React.FC = () => {
               adjustType: 'I',
               remarks: values.remarks,
               detail: {
-                id: newId,
+                id: null,
                 itemName: values.name,
                 itemCode: values.itemCode,
                 spec: values.spec,
