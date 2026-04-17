@@ -90,6 +90,7 @@ const PriceListAdjustment: React.FC = () => {
 
   const fetchItems = async () => {
     if (!selectedPlan) return;
+    setItems([]);
     setLoading(true);
     
     let adjustTypes: string[] = [];
@@ -117,7 +118,6 @@ const PriceListAdjustment: React.FC = () => {
         item.origPrice1 = priceList.filter((p: any) => p.priceLevelCode === '1')[0] ?? null;
         item.origPrice2 = priceList.filter((p: any) => p.priceLevelCode === '2')[0] ?? null;
         item.origPrice3 = priceList.filter((p: any) => p.priceLevelCode === '3')[0] ?? null;
-        console.log('Transformed item:', item);
       });
 
       setItems(result.data.dataInfo.data);
@@ -417,7 +417,7 @@ const PriceListAdjustment: React.FC = () => {
           // change element in priceList or add new one if not exist
           detail.priceList = detail.priceList || [];
           if (!detail.priceList.some((p: any) => p.priceLevelCode === '3')) {
-            detail.priceList.push({ priceLevelCode: '3', retaBasicPrice: newPrice });
+            detail.priceList.push({ priceLevelCode: '3', retaBasicPrice: newPrice, provinceCode: selectedPlan?.provinceCode });
           } else {
             detail.priceList = detail.priceList.map((p: any) => {
               if (p.priceLevelCode === '3') {
@@ -1084,9 +1084,7 @@ const PriceListAdjustment: React.FC = () => {
         item={editingLinkedItem}
         onCancel={() => setAdjustModalVisible(false)}
         onSave={(data) => {
-          console.log('Adjusted Linked Items:', data);
           setAdjustModalVisible(false);
-          antd.message.success('保存成功');
         }}
       />
     </div>
