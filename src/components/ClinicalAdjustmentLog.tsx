@@ -171,7 +171,7 @@ const ClinicalAdjustmentLog: React.FC = () => {
                 options={[
                   { value: '100', label: '价表' },
                   { value: '200', label: '临床' },
-                  { value: '400', label: '临床拓展' }
+                  { value: '400', label: '临床综合维护' }
                 ]}
               />
             </Space>

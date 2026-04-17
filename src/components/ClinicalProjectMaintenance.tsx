@@ -94,7 +94,7 @@ const ClinicalProjectMaintenance: React.FC = () => {
         {/* Left Plan List Panel */}
         <div style={{ width: 300, background: '#fff', borderRight: '1px solid #e8e8e8' }}>
           <PlanList 
-            planType="200" 
+            planType="400" 
             onSelect={(plan) => setSelectedPlan(plan)}
           />
         </div>

@@ -372,7 +372,7 @@ const PlanList: React.FC<PlanListProps> = ({
         visible={modalVisible}
         mode={modalMode}
         initialValues={editingPlan}
-        titlePrefix={planType === '200' ? '临床项目' : (planType === '400' ? '临床拓展' : '价表项目')}
+        titlePrefix={planType === '200' ? '临床项目' : (planType === '400' ? '临床综合维护' : '价表项目')}
         onCancel={() => setModalVisible(false)}
         onOk={handleModalOk}
       />
