@@ -72,6 +72,7 @@ const PriceListAdjustment: React.FC = () => {
   const [transferModalVisible, setTransferModalVisible] = useState(false);
   const [transferModalStatus, setTransferModalStatus] = useState('0');
   const [replacementModalVisible, setReplacementModalVisible] = useState(false);
+  const [replacingRecord, setReplacingRecord] = useState<PriceItem | null>(null);
   const [adjustModalVisible, setAdjustModalVisible] = useState(false);
   const [editingLinkedItem, setEditingLinkedItem] = useState<LinkedClinicalItem | null>(null);
   const [editingPriceItem, setEditingPriceItem] = useState<PriceItem | null>(null);
@@ -100,6 +101,7 @@ const PriceListAdjustment: React.FC = () => {
       planId: selectedPlan.id,
       queryString: params.queryString,
       adjustTypes,
+      planStatus: ['0', '1', '2', '3', '4'],
       pageNum: params.pageNum,
       pageSize: params.pageSize,
     });
@@ -108,6 +110,16 @@ const PriceListAdjustment: React.FC = () => {
       setItems(result);
       setTotal(result.length);
     } else if (result?.code === 'SUCCESS') {
+      result.data.dataInfo.data.forEach((item: PriceItem) => {
+        // Perform any necessary transformations on each item here
+        const detail = item.detail || {};
+        const priceList = detail.priceList || [];
+        item.origPrice1 = priceList.filter((p: any) => p.priceLevelCode === '1')[0] ?? null;
+        item.origPrice2 = priceList.filter((p: any) => p.priceLevelCode === '2')[0] ?? null;
+        item.origPrice3 = priceList.filter((p: any) => p.priceLevelCode === '3')[0] ?? null;
+        console.log('Transformed item:', item);
+      });
+
       setItems(result.data.dataInfo.data);
       setTotal(result.data.dataInfo.totalNum);
     }
@@ -379,22 +391,104 @@ const PriceListAdjustment: React.FC = () => {
     },
     { title: '规格', dataIndex: ['detail', 'spec'], key: 'spec', width: 100 },
     { title: '单位', dataIndex: ['detail', 'unit'], key: 'unit', width: 60 },
-    { 
-      title: '价格变动', 
-      key: 'priceChanges', 
-      width: 200,
-      render: (record: PriceItem) => {
-        const priceList = record.detail?.priceList || [];
-        return (
-          <Space direction="vertical" size={0}>
-            {priceList.map((p: any) => (
-              <div key={p.priceLevelUniqueCode}>
-                <Text type="secondary">等级{p.priceLevelCode}: </Text>
-                <Text strong>{p.retaBasicPrice}</Text>
-              </div>
-            ))}
-          </Space>
-        );
+    {
+      title: '原价（三级）', key: 'origPrice3', width: 100,
+      render: (text: any, record: PriceItem) => {
+        return record.origPrice3?.retaBasicPrice || '-';
+      }
+    },
+    { title: '原价（二级）', key: 'origPrice2', width: 100,
+      render: (text: any, record: PriceItem) => {
+        return record.origPrice2?.retaBasicPrice || '-';
+      }
+    },
+    { title: '原价（一级）', key: 'origPrice1', width: 100,
+      render: (text: any, record: PriceItem) => {
+        return record.origPrice1?.retaBasicPrice || '-';
+      }
+    },
+    { title: '调价（三级）', key: 'newPrice3', width: 100,
+      render: (text: any, record: PriceItem) => {
+        const detail = record.detail || {};
+        const priceLevelList = record.priceLevelList || [];
+        const price = priceLevelList.filter((p: any) => p.priceLevelCode === '3').map((p: any) => p.retaBasicPrice).join(', ');
+        return <Input defaultValue={price} onChange={(e) => {
+          const newPrice = e.target.value;
+          // change element in priceList or add new one if not exist
+          detail.priceList = detail.priceList || [];
+          if (!detail.priceList.some((p: any) => p.priceLevelCode === '3')) {
+            detail.priceList.push({ priceLevelCode: '3', retaBasicPrice: newPrice });
+          } else {
+            detail.priceList = detail.priceList.map((p: any) => {
+              if (p.priceLevelCode === '3') {
+                return { ...p, retaBasicPrice: newPrice };
+              }
+              return p;
+            });
+          }
+          setItems(prev => prev.map(item => {
+            if (item.key === record.key) {
+              return { ...item, detail: { ...detail } };
+            }            
+            return item;
+          }));
+        }} />;
+      }
+    },
+    { title: '调价（二级）', key: 'newPrice2', width: 100,
+      render: (text: any, record: PriceItem) => {
+        const detail = record.detail || {};
+        const priceLevelList = record.priceLevelList || [];
+        const price = priceLevelList.filter((p: any) => p.priceLevelCode === '2').map((p: any) => p.retaBasicPrice).join(', ');
+        return <Input defaultValue={price} onChange={(e) => {
+          const newPrice = e.target.value;
+          // change element in priceList or add new one if not exist
+          detail.priceList = detail.priceList || [];
+          if (!detail.priceList.some((p: any) => p.priceLevelCode === '2')) {
+            detail.priceList.push({ priceLevelCode: '2', retaBasicPrice: newPrice });
+          } else {
+            detail.priceList = detail.priceList.map((p: any) => {
+              if (p.priceLevelCode === '2') {
+                return { ...p, retaBasicPrice: newPrice };
+              }
+              return p;
+            });
+          }
+          setItems(prev => prev.map(item => {
+            if (item.key === record.key) {
+              return { ...item, detail: { ...detail } };
+            }            
+            return item;
+          }));
+        }} />;
+      }
+    },
+    { title: '调价（一级）', key: 'newPrice1', width: 100,
+      render: (text: any, record: PriceItem) => {
+        const detail = record.detail || {};
+        const priceLevelList = record.priceLevelList || [];
+        const price = priceLevelList.filter((p: any) => p.priceLevelCode === '1').map((p: any) => p.retaBasicPrice).join(', ');
+        return <Input defaultValue={price} onChange={(e) => {
+          const newPrice = e.target.value;
+          // change element in priceList or add new one if not exist
+          detail.priceList = detail.priceList || [];
+          if (!detail.priceList.some((p: any) => p.priceLevelCode === '1')) {
+            detail.priceList.push({ priceLevelCode: '1', retaBasicPrice: newPrice });
+          } else {
+            detail.priceList = detail.priceList.map((p: any) => {
+              if (p.priceLevelCode === '1') {
+                return { ...p, retaBasicPrice: newPrice };
+              }
+              return p;
+            });
+          }
+          setItems(prev => prev.map(item => {
+            if (item.key === record.key) {
+              return { ...item, detail: { ...detail } };
+            }            
+            return item;
+          }));
+        }} />;
       }
     },
     { 
@@ -460,8 +554,14 @@ const PriceListAdjustment: React.FC = () => {
       width: 120,
       render: (_, record: PriceItem) => (
         <Space>
-          <Button type="link" size="small" style={{ padding: 0 }} onClick={(e) => {setReplacementModalVisible(true);e.stopPropagation();}} disabled={!isEditable}>替换项</Button>
-          <Button type="link" size="small" danger style={{ padding: 0 }} disabled={!isEditable} onClick={() => {
+          <Button type="link" size="small" style={{ padding: 0 }} onClick={(e) => {
+            e.stopPropagation();
+            setReplacingRecord(record);
+            setReplacementModalVisible(true);
+          }} disabled={!isEditable}>替换项</Button>
+          <Button type="link" size="small" danger style={{ padding: 0 }} disabled={!isEditable} onClick={(e) => {
+            e.stopPropagation();
+
             antd.Modal.confirm({
               title: '确认移除',
               content: '确定要移除该项目吗？',
@@ -513,6 +613,10 @@ const PriceListAdjustment: React.FC = () => {
               });
               if (!item.clinicList.some((ci: any) =>ci.clinicCode === record.clinicCode)) {
                 item.clinicList.push({ ...record, adjustType: value });
+              }
+              // record.adjustType is empty. remove the item from clinicList
+              if (value === '') {
+                item.clinicList = (item.clinicList || []).filter((ci: any) => ci.clinicCode !== record.clinicCode);
               }
               return item;
             }));
@@ -956,11 +1060,23 @@ const PriceListAdjustment: React.FC = () => {
       />
       <ReplacementItemModal
         visible={replacementModalVisible}
-        onCancel={() => setReplacementModalVisible(false)}
-        onSave={(item) => {
-          console.log('Selected Replacement Item:', item);
+        planId={selectedPlan?.id}
+        record={replacingRecord}
+        onCancel={() => {
           setReplacementModalVisible(false);
-          antd.message.success('替换项保存成功');
+          setReplacingRecord(null);
+        }}
+        onSave={(item) => {
+          if (replacingRecord && item) {
+            setItems(prev => prev.map(rec => {
+              if (rec.id === replacingRecord.id) {
+                return { ...rec, replaceItemCode: item.itemCode, replaceItemName: item.itemName, replaceItem: item };
+              }
+              return rec;
+            }));
+          }
+          setReplacementModalVisible(false);
+          setReplacingRecord(null);
         }}
       />
       <AdjustLinkedPriceItemsModal

@@ -18,6 +18,26 @@ export interface PriceItem {
   key: string;
   id?: string;
   active?: string;
+  code?: string;
+  name?: string;
+  spec?: string;
+  unit?: string;
+  price3?: string;
+  price2?: string;
+  price1?: string;
+  oldPrice3?: string;
+  oldPrice2?: string;
+  oldPrice1?: string;
+  newPrice3?: string;
+  newPrice2?: string;
+  newPrice1?: string;
+  natCode?: string;
+  natName?: string;
+  itemCode?: string;
+  category?: string;
+  repCode?: string;
+  repName?: string;
+  repUnit?: string;
   remarks?: string;
   otherChanges?: string;
   repItemCode?: string;
@@ -29,6 +49,9 @@ export interface PriceItem {
   detail?: any;
   priceLevelList?: any[];
   clinicList?: any[];
+  origPrice1?: any;
+  origPrice2?: any;
+  origPrice3?: any;
 }
 
 export interface LinkedClinicalItem {
@@ -198,6 +221,8 @@ const deactivateTableData: PriceItem[] = [
 const linkedClinicalData: LinkedClinicalItem[] = [
   {
     key: '1',
+    clinicCode: '20011',
+    clinicName: 'EB病毒抗体六联检',
     code: '20011',
     category: '检验',
     name: 'EB病毒抗体六联检',
@@ -214,7 +239,7 @@ export const priceListService = {
     }
     return planList;
   },
-  getItems: async (params: { planId: string; queryString: string; adjustTypes: string[]; pageNum: number; pageSize: number }) => {
+  getItems: async (params: { planId: string; queryString: string; adjustTypes: string[]; planStatus: string[]; pageNum: number; pageSize: number }) => {
     if (import.meta.env.VITE_MOCK === 'false') {
       const response = await request<any>('/api/adjust/price/detail', {
         method: 'POST',
