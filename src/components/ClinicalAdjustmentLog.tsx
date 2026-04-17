@@ -105,6 +105,8 @@ const ClinicalAdjustmentLog: React.FC = () => {
       width: 100,
       render: (text: string) => {
         if (text === 'U') return '调整';
+        if (text === 'R') return '替换';
+        if (text === 'M') return '移除';
         if (text === 'A') return '启用';
         if (text === 'D') return '停用';
         return text;
@@ -125,6 +127,8 @@ const ClinicalAdjustmentLog: React.FC = () => {
         if (record.result === 1) {
           const type = record.adjustType;
           if (type === 'U') return '调整';
+          if (type === 'R') return '替换';
+          if (type === 'M') return '移除';
           if (type === 'A') return '启用';
           if (type === 'D') return '停用';
           return type;
@@ -188,6 +192,8 @@ const ClinicalAdjustmentLog: React.FC = () => {
                 options={[
                   { value: 'A', label: '启用' },
                   { value: 'U', label: '调整' },
+                  { value: 'R', label: '替换' },
+                  { value: 'M', label: '移除' },
                   { value: 'D', label: '停用' }
                 ]}
               />

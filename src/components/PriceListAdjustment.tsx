@@ -95,7 +95,7 @@ const PriceListAdjustment: React.FC = () => {
     
     let adjustTypes: string[] = [];
     if (activeTab === '1') adjustTypes = ['I', 'E'];
-    else if (activeTab === '2') adjustTypes = ['U'];
+    else if (activeTab === '2') adjustTypes = ['U', 'R', 'M'];
     else if (activeTab === '3') adjustTypes = ['D'];
 
     const result = await priceListService.getItems({
@@ -387,6 +387,8 @@ const PriceListAdjustment: React.FC = () => {
       width: 80,
       render: (text: string) => {
         if (text === 'U') return <Tag color="orange">修改</Tag>;
+        if (text === 'R') return <Tag color="cyan">替换</Tag>;
+        if (text === 'M') return <Tag color="blue">移除</Tag>;
         if (text === 'I') return <Tag color="green">新增</Tag>;
         if (text === 'E') return <Tag color="cyan">启用</Tag>;
         if (text === 'D') return <Tag color="red">停用</Tag>;
