@@ -97,7 +97,7 @@ const PlanModal: React.FC<PlanModalProps> = ({
           name="beginDatetime" 
           rules={[{ required: true, message: '请选择生效时间' }]}
         >
-          <DatePicker showTime format="YYYY-MM-DD HH:mm:ss" style={{ width: '100%' }} />
+          <DatePicker showTime format="YYYY-MM-DD HH:mm:ss" style={{ width: '100%' }} disabled={!!initialValues?.linkedPlanId} />
         </Form.Item>
 
         <Form.Item 
@@ -123,12 +123,19 @@ const PlanModal: React.FC<PlanModalProps> = ({
             mode="multiple" 
             placeholder="请选择适用机构"
             loading={loadingOrgs}
+            disabled={!!initialValues?.linkedPlanId}
             options={orgs.map(org => ({
               value: org.id,
               label: org.hspName
             }))}
           />
         </Form.Item>
+
+        {initialValues?.linkedPlanName && (
+          <Form.Item label="关联计划">
+            <Input value={initialValues.linkedPlanName} disabled />
+          </Form.Item>
+        )}
 
         <Form.Item wrapperCol={{ offset: 5, span: 19 }} style={{ marginBottom: 0 }}>
           <Text type="secondary" style={{ fontSize: 12 }}>

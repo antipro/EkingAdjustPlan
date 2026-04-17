@@ -17,6 +17,8 @@ export interface PlanInfo {
   changeSummary: string;
   orgNames: string;
   orgIdList?: string[];
+  linkedPlanId?: string;
+  linkedPlanName?: string;
 }
 
 export interface PageInfo {
@@ -49,7 +51,9 @@ const mockPlans: PlanInfo[] = [
     policy: "江苏省医保医疗服务价格调整公式[202607]",
     changeSummary: "启用0；调整1；停用0",
     orgNames: "智慧云医院，温泉镇分院，南河镇分院",
-    orgIdList: ["711912746777575424", "909521624921800704", "1037000793053462528"]
+    orgIdList: ["711912746777575424", "909521624921800704", "1037000793053462528"],
+    linkedPlanId: "1241075063734665217",
+    linkedPlanName: "2026年第一季度临床项目调整计划"
   },
   {
     id: "1241075063734665217",

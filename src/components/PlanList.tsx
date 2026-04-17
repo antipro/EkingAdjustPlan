@@ -324,19 +324,25 @@ const PlanList: React.FC<PlanListProps> = ({
               <Text type="secondary" style={{ fontSize: 12 }}>计划条数 </Text>
               <Text style={{ fontSize: 12 }}>{plan.changeSummary}</Text>
             </div>
-            <div style={{ marginBottom: 8 }}>
+            <div style={{ marginBottom: 4 }}>
               <Text type="secondary" style={{ fontSize: 12 }}>适用机构 </Text>
               <Text style={{ fontSize: 12 }}>{plan.orgNames}</Text>
             </div>
+            {plan.linkedPlanName && (
+              <div style={{ marginBottom: 8 }}>
+                <Text type="secondary" style={{ fontSize: 12 }}>关联计划 </Text>
+                <Text style={{ fontSize: 12, color: '#1890ff' }}>{plan.linkedPlanName}</Text>
+              </div>
+            )}
             
             {selectedId === plan.id && (
               <div style={{ textAlign: 'right' }}>
                 <Space>
                   {(plan.status === '0' || plan.status === '3') && (
                     <>
-                      <Button size="small" onClick={(e) => { e.stopPropagation(); handleSubmit(plan); }}>提交</Button>
+                      {!plan.linkedPlanName && <Button size="small" onClick={(e) => { e.stopPropagation(); handleSubmit(plan); }}>提交</Button>}
                       <Button size="small" onClick={(e) => { e.stopPropagation(); handleEdit(plan); }}>修改</Button>
-                      <Button size="small" danger onClick={(e) => { e.stopPropagation(); handleDelete(plan); }}>删除</Button>
+                      {!plan.linkedPlanName && <Button size="small" danger onClick={(e) => { e.stopPropagation(); handleDelete(plan); }}>删除</Button>}
                     </>
                   )}
                   {plan.status === '1' && (
